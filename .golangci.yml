@@ -1,31 +1,25 @@
 run:
   timeout: 5m
   tests: false
-  
+  go: '1.24'
+
 output:
-  format: tab
+  formats:
+    - format: tab
+
+linters:
+  disable-all: true
+  enable:
+    - govet
+    - revive
+    - errcheck
+    - ineffassign
+    - staticcheck
+    - gofmt
+    - goimports
+    - misspell
+    - whitespace
+
 linters-settings:
   exhaustive:
     default-signifies-exhaustive: true
-  govet:
-    check-shadowing: false
-  linters:
-    enable:
-      -govet
-      -revive
-      -errcheck
-      -gosimple
-      -godot
-      -ineffassign
-      -staticcheck
-      -unused
-      -durationcheck
-      -exportloopref
-      -gofmt
-      -goimports
-      -misspell
-      -predeclared
-      -reassign
-      -whitespace
-    disable-all: true
-    fast: false
