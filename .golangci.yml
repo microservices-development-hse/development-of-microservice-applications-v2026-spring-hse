@@ -19,9 +19,7 @@ linters-settings:
       -ineffassign
       -staticcheck
       -unused
-      -bidichk
       -durationcheck
-      -exhaustive
       -exportloopref
       -gofmt
       -goimports
