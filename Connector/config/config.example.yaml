@@ -1,1 +1,14 @@
-# issue-2
+ProgramSettings:
+  jiraUrl: "https://issues.apache.org/jira"
+  threadCount: 1 # 4-10
+  issueInOneRequest: 50 #  50-1000 (требование КФ2)
+  minTimeSleep: 1000 # Начальное время ожидания для повторной отправки запроса в Jira
+  maxTimeSleep: 60000 # Максимальное время ожидания (если превысит - прекращаем попытки)
+
+
+DBSettings:
+  dbUser: "postgres"
+  dbPassword: "pgpwd"
+  dbHost: "localhost"
+  dbPort: 5432
+  dbName: "jira_analyzer"
