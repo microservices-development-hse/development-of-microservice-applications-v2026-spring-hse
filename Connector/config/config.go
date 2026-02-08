@@ -11,6 +11,7 @@ type ProgramSettings struct {
 	IssueInOneRequest int    `yaml:"issueInOneRequest"`
 	MinTimeSleep      int    `yaml:"minTimeSleep"`
 	MaxTimeSleep      int    `yaml:"maxTimeSleep"`
+	Port              int    `yaml:"port"`
 }
 
 type DBSettings struct {

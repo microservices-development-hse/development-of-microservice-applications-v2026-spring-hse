@@ -1,9 +1,10 @@
 ProgramSettings:
   jiraUrl: "https://issues.apache.org/jira"
   threadCount: 1 # 4-10
-  issueInOneRequest: 50 #  50-1000 (требование КФ2)
+  issueInOneRequest: 50 #  50-1000
   minTimeSleep: 1000 # Начальное время ожидания для повторной отправки запроса в Jira
   maxTimeSleep: 60000 # Максимальное время ожидания (если превысит - прекращаем попытки)
+  port: 8080  # Порт для локального http сервера (требование КФ4.1)
 
 
 DBSettings:
