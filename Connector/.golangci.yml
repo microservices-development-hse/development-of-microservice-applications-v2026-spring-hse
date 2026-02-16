@@ -1,0 +1,26 @@
+version: 2
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  disable-all: true
+  enable:
+    - govet
+    - errcheck
+    - staticcheck
+    - ineffassign
+    - unused
+    - contextcheck
+
+linters-settings:
+  revive:
+    severity: warning
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+output:
+  sort-results: true
