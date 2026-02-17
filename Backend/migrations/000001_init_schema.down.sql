@@ -1,0 +1,9 @@
+DROP TABLE IF EXISTS "ActivityByTask";
+DROP TABLE IF EXISTS "TaskPriorityCount";
+DROP TABLE IF EXISTS "ComplexityTaskTime";
+DROP TABLE IF EXISTS "TaskStateTime";
+DROP TABLE IF EXISTS "OpenTaskTime";
+DROP TABLE IF EXISTS "StatusChanges";
+DROP TABLE IF EXISTS "Issue";
+DROP TABLE IF EXISTS "Author";
+DROP TABLE IF EXISTS "Project";
