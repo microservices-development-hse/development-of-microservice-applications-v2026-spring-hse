@@ -1,5 +1,3 @@
-// issue-4
-
 package db
 
 import "time"
