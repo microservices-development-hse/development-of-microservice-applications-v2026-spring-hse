@@ -30,27 +30,31 @@ func (c *Config) Validate() error {
 	p := c.ProgramSettings
 
 	if p.JiraURL == "" {
-		return fmt.Errorf("JiraUrl is required")
+		return fmt.Errorf("jiraURL is required (current value: empty)")
 	}
 
 	if p.ThreadCount < 1 {
-		return fmt.Errorf("ThreadCount must be >= 1")
+		return fmt.Errorf("number of threads must be >= 1 (current value: %d)", p.ThreadCount)
 	}
 
 	if p.IssueInOneRequest < 50 || p.IssueInOneRequest > 1000 {
-		return fmt.Errorf("IssueInOneRequest must be between 50 and 1000")
+		return fmt.Errorf("number of issues in one request must be between 50 and 1000 (current value: %d)", p.IssueInOneRequest)
 	}
 
-	if p.MinTimeSleep <= 0 || p.MaxTimeSleep <= 0 {
-		return fmt.Errorf("TimeSleep must be > 0")
+	if p.MinTimeSleep <= 0 {
+		return fmt.Errorf("minimum sleep time must be > 0 (current value: %d)", p.MinTimeSleep)
+	}
+
+	if p.MaxTimeSleep <= 0 {
+		return fmt.Errorf("maximum sleep time must be > 0 (current value: %d)", p.MaxTimeSleep)
 	}
 
 	if p.MinTimeSleep > p.MaxTimeSleep {
-		return fmt.Errorf("MinTimeSleep must be <= maxTimeSleep")
+		return fmt.Errorf("minimum sleep time (%d) must be <= maximum sleep time (%d)", p.MinTimeSleep, p.MaxTimeSleep)
 	}
 
 	if p.Port <= 0 || p.Port > 65535 {
-		return fmt.Errorf("Port must be between 1 and 65535")
+		return fmt.Errorf("port must be between 1 and 65535 (current value: %d)", p.Port)
 	}
 
 	return nil
