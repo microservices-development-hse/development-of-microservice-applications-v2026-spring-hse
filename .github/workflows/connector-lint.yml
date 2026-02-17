@@ -1,0 +1,27 @@
+name: GolangCI Lint Connector
+
+on:
+  pull_request:
+    paths:
+      - 'Connector/**'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: Run GolangCI Lint for Connector
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v7
+        with:
+          version: v2.9.0
+          working-directory: Connector
+          args: --config .golangci.yml --timeout=5m
