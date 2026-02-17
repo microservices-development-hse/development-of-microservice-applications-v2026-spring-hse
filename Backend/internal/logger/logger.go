@@ -54,7 +54,7 @@ func InitLogger() error {
 	}
 
 	logrus.SetOutput(allLogsFile)
-	logrus.SetFormatter(&logrus.TextFormatter{FullTimestamp: true})
+	logrus.SetFormatter(&logrus.JSONFormatter{})
 	logrus.SetLevel(logrus.InfoLevel)
 
 	errorLevels := []logrus.Level{
