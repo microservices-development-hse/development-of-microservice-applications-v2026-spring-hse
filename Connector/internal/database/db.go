@@ -3,10 +3,12 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"time"
 
+	_ "github.com/lib/pq"
+
 	"github.com/microservices-development-hse/connector/config"
+	"github.com/microservices-development-hse/connector/internal/logger"
 )
 
 var db *sql.DB
@@ -31,12 +33,17 @@ func Init(cfg config.DBSettings) error {
 	conn.SetConnMaxLifetime(10 * time.Minute)
 
 	if err := conn.Ping(); err != nil {
-		conn.Close()
+		if closeErr := conn.Close(); closeErr != nil {
+			logger.Error(fmt.Sprintf("database ping failed: %v; additionally failed to close connection: %v", err, closeErr))
+			return fmt.Errorf("db.Ping: %v; close: %w", err, closeErr)
+		}
+
+		logger.Error(fmt.Sprintf("db.Ping failed: %v", err))
 		return fmt.Errorf("db.Ping: %w", err)
 	}
 
 	db = conn
-	log.Println("[INFO] Database connection established")
+	logger.Info("Database connection established")
 	return nil
 }
 
@@ -52,6 +59,9 @@ func Close() error {
 		return nil
 	}
 	err := db.Close()
+	if err != nil {
+		logger.Error(fmt.Sprintf("failed to close database: %v", err))
+	}
 	db = nil
 	return err
 }

@@ -3,6 +3,8 @@ package database
 import (
 	"database/sql"
 	"fmt"
+
+	"github.com/microservices-development-hse/connector/internal/logger"
 )
 
 var (
@@ -59,7 +61,9 @@ func CloseStatements() {
 		StmtInsertUser,
 	} {
 		if s != nil {
-			s.Close()
+			if err := s.Close(); err != nil {
+				logger.Error(fmt.Sprintf("failed to close statement: %v", err))
+			}
 		}
 	}
 }
