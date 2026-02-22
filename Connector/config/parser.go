@@ -11,7 +11,10 @@ func Load(path string) (*Config, error) {
 	data, err := os.ReadFile(path)
 
 	if err != nil {
-		return nil, fmt.Errorf("read config: %w", err)
+		data, err = os.ReadFile("config/config.example.yaml")
+		if err != nil {
+			return nil, fmt.Errorf("read config: %w", err)
+		}
 	}
 
 	var cfg Config
