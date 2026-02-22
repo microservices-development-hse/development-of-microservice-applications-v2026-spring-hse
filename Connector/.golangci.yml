@@ -12,7 +12,15 @@ linters:
     - staticcheck
     - ineffassign
     - unused
+    - whitespace
+    - misspell
     - contextcheck
+    - nakedret
+
+formatters:
+  enable:
+    - goimports
+    - gofmt
 
 issues:
   max-issues-per-linter: 0
