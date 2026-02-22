@@ -6,9 +6,12 @@ import (
 )
 
 func TestInitLogger(t *testing.T) {
-	os.RemoveAll("logs")
+	err := os.RemoveAll("logs")
+	if err != nil {
+		t.Fatalf("Failed to clean up logs directory before test: %v", err)
+	}
 
-	err := InitLogger()
+	err = InitLogger()
 	if err != nil {
 		t.Fatalf("InitLogger() returned error: %v", err)
 	}
