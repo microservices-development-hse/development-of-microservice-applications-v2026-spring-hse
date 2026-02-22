@@ -1,5 +1,6 @@
 CREATE TABLE "Project" (
     "id" SERIAL PRIMARY KEY,
+    "key" VARCHAR(10) UNIQUE NOT NULL,
     "title" TEXT NOT NULL
 );
 
@@ -34,10 +35,10 @@ CREATE TABLE "StatusChanges" (
 );
 
 CREATE TABLE "OpenTaskTime" (
-    "roject_id" INTEGER NOT NULL REFERENCES "Project"("id") ON DELETE CASCADE,
+    "project_id" INTEGER NOT NULL REFERENCES "Project"("id") ON DELETE CASCADE,
     "creation_time" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     "data" JSONB NOT NULL,
-    PRIMARY KEY ("roject_id")
+    PRIMARY KEY ("project_id")
 );
 
 CREATE TABLE "TaskStateTime" (

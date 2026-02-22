@@ -5,33 +5,33 @@ import (
 	"time"
 )
 
-type OpenTaskTimeData struct {
+type OpenTaskTime struct {
 	IDProject    int             `json:"project_id"`
 	CreationTime time.Time       `json:"creation_time"`
 	Data         json.RawMessage `json:"data"`
 }
 
-type TaskPriorityCountData struct {
+type TaskPriorityCount struct {
 	IDProject    int             `json:"project_id"`
 	CreationTime time.Time       `json:"creation_time"`
 	State        string          `json:"state"`
 	Data         json.RawMessage `json:"data"`
 }
 
-type TaskStateTimeData struct {
+type TaskStateTime struct {
 	IDProject    int             `json:"project_id"`
 	CreationTime time.Time       `json:"creation_time"`
 	Data         json.RawMessage `json:"data"`
 	State        string          `json:"state"`
 }
 
-type ComplexityTaskTimeData struct {
+type ComplexityTaskTime struct {
 	IDProject    int             `json:"project_id"`
 	CreationTime time.Time       `json:"creation_time"`
 	Data         json.RawMessage `json:"data"`
 }
 
-type ActivityByTaskData struct {
+type ActivityByTask struct {
 	IDProject    int             `json:"project_id"`
 	CreationTime time.Time       `json:"creation_time"`
 	State        string          `json:"state"`
