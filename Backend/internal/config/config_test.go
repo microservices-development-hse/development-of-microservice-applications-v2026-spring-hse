@@ -100,7 +100,9 @@ DBSettings:
 				t.Fatalf("Could not create temp file: %v", err)
 			}
 
-			defer os.Remove(tmpFile)
+			t.Cleanup(func() {
+				_ = os.Remove(tmpFile)
+			})
 
 			_, err = LoadConfig(tmpFile)
 			if (err != nil) != tc.expectError {
