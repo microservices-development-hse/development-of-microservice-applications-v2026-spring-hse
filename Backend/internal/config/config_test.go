@@ -95,7 +95,6 @@ DBSettings:
 		t.Run(tc.name, func(t *testing.T) {
 			tmpFile := "test_config.yaml"
 			err := os.WriteFile(tmpFile, []byte(tc.yamlContent), 0644)
-
 			if err != nil {
 				t.Fatalf("Could not create temp file: %v", err)
 			}

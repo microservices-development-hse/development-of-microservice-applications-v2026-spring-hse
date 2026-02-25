@@ -20,7 +20,9 @@ func (r *IssueRepository) CreateIssue(issue *models.Issue) error {
 		logrus.Errorf("Failed to create issue %s: %v", issue.Key, err)
 		return err
 	}
+
 	logrus.Infof("Issue %s created successfully", issue.Key)
+
 	return nil
 }
 
@@ -30,14 +32,17 @@ func (r *IssueRepository) UpdateIssue(issue *models.Issue) error {
 		logrus.Errorf("Failed to update issue %s: %v", issue.Key, err)
 		return err
 	}
+
 	return nil
 }
 
 func (r *IssueRepository) GetIssueByKey(key string) (*models.Issue, error) {
 	var issue models.Issue
+
 	err := r.db.Where("key = ?", key).First(&issue).Error
 	if err != nil {
 		return nil, err
 	}
+
 	return &issue, nil
 }

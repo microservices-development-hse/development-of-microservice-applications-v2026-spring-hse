@@ -22,6 +22,7 @@ func main() {
 	}
 
 	defer closeDB()
+
 	logrus.Info("Application started successfully")
 
 	//projectRepo := postgres.NewProjectRepository(db)

@@ -1,6 +1,8 @@
 package postgres
 
 import (
+	"errors"
+
 	"github.com/microservices-development-hse/backend/internal/models"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -30,6 +32,7 @@ func (r *ProjectRepository) CreateProject(project *models.Project) error {
 
 func (r *ProjectRepository) GetAllProjects() ([]models.Project, error) {
 	var projects []models.Project
+
 	err := r.db.Find(&projects).Error
 	if err != nil {
 		logrus.Errorf("Failed to get all projects: %v", err)
@@ -41,13 +44,15 @@ func (r *ProjectRepository) GetAllProjects() ([]models.Project, error) {
 
 func (r *ProjectRepository) GetProjectByID(id int) (*models.Project, error) {
 	var project models.Project
+
 	err := r.db.First(&project, id).Error
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			logrus.Infof("Project with ID %d not found", id)
 			return nil, nil
 		}
 
-		logrus.Errorf("Error fetching project %d: %v", id, err)
+		logrus.Errorf("Error fetching project by ID %d: %v", id, err)
 
 		return nil, err
 	}
@@ -59,9 +64,8 @@ func (r *ProjectRepository) GetProjectByKey(key string) (*models.Project, error)
 	var project models.Project
 
 	err := r.db.Where("key = ?", key).First(&project).Error
-
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			logrus.Infof("Project with key %s not found", key)
 			return nil, nil
 		}
@@ -82,6 +86,7 @@ func (r *ProjectRepository) UpdateProject(project *models.Project) error {
 	}
 
 	logrus.Infof("Project ID %d updated successfully", project.ID)
+
 	return nil
 }
 
