@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type Issue struct {
 	ID          int        `json:"id" db:"id"`
@@ -20,10 +22,15 @@ type Issue struct {
 }
 
 type IssueRepository interface {
-	Save(issue *Issue) error
-	GetByProjectID(projectID int) ([]Issue, error)
-	GetByKey(key string) (*Issue, error)
-	UpdateStatus(id int, newStatus string) error
-	GetStatsByProject(projectID int) (map[string]int, error)
-	DeleteByProject(projectID int) error
+	CreateIssue(issue *Issue) error
+	UpdateIssue(issue *Issue) error
+	//GetIssueByProjectID(projectID int) ([]Issue, error)
+	GetIssueByKey(key string) (*Issue, error)
+	//UpdateStatus(id int, newStatus string) error
+	//GetStatsByProject(projectID int) (map[string]int, error)
+	//DeleteByProject(projectID int) error
+}
+
+func (Issue) TableName() string {
+	return "Issue"
 }

@@ -6,7 +6,12 @@ type Author struct {
 }
 
 type AuthorRepository interface {
-	Save(author *Author) error
-	GetByID(id int) (*Author, error)
-	GetAll() ([]Author, error)
+	GetAuthorByName(name string) (*Author, error)
+	//Save(author *Author) error
+	//GetByID(id int) (*Author, error)
+	//GetAll() ([]Author, error)
+}
+
+func (Author) TableName() string {
+	return "Author"
 }

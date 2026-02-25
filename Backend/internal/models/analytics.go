@@ -39,7 +39,29 @@ type ActivityByTask struct {
 }
 
 type AnalyticsRepository interface {
-	GetAnalyticsData(projectKey string, taskNumber int) (interface{}, error)
-	RunAnalysis(projectKey string, taskNumber int) error
-	CheckIfAnalyzed(projectKey string) (bool, error)
+	SaveTaskStateTime(data *TaskStateTime) error
+	GetStateAnalytics(projectID int) ([]TaskStateTime, error)
+	//GetAnalyticsData(projectKey string, taskNumber int) (interface{}, error)
+	//RunAnalysis(projectKey string, taskNumber int) error
+	//CheckIfAnalyzed(projectKey string) (bool, error)
+}
+
+func (OpenTaskTime) TableName() string {
+	return "OpenTaskTime"
+}
+
+func (TaskStateTime) TableName() string {
+	return "TaskStateTime"
+}
+
+func (ComplexityTaskTime) TableName() string {
+	return "ComplexityTaskTime"
+}
+
+func (TaskPriorityCount) TableName() string {
+	return "TaskPriorityCount"
+}
+
+func (ActivityByTask) TableName() string {
+	return "ActivityByTask"
 }
