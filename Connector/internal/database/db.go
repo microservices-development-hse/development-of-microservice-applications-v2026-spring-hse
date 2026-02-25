@@ -35,15 +35,18 @@ func Init(cfg config.DBSettings) error {
 	if err := conn.Ping(); err != nil {
 		if closeErr := conn.Close(); closeErr != nil {
 			logger.Error(fmt.Sprintf("database ping failed: %v; additionally failed to close connection: %v", err, closeErr))
-			return fmt.Errorf("db.Ping: %v; close: %w", err, closeErr)
+			return fmt.Errorf("db.Ping: %w; close: %w", err, closeErr)
 		}
 
 		logger.Error(fmt.Sprintf("db.Ping failed: %v", err))
+
 		return fmt.Errorf("db.Ping: %w", err)
 	}
 
 	db = conn
+
 	logger.Info("Database connection established")
+
 	return nil
 }
 
@@ -51,6 +54,7 @@ func GetDB() *sql.DB {
 	if db == nil {
 		panic("database: GetDB called before Init")
 	}
+
 	return db
 }
 
@@ -58,17 +62,29 @@ func Close() error {
 	if db == nil {
 		return nil
 	}
+
 	err := db.Close()
 	if err != nil {
 		logger.Error(fmt.Sprintf("failed to close database: %v", err))
+
+		db = nil
+
+		return fmt.Errorf("closing database error: %w", err)
 	}
+
 	db = nil
-	return err
+
+	return nil
 }
 
 func Ping() error {
 	if db == nil {
 		return fmt.Errorf("database not initialized")
 	}
-	return db.Ping()
+
+	if err := db.Ping(); err != nil {
+		return fmt.Errorf("pinging database error: %w", err)
+	}
+
+	return nil
 }

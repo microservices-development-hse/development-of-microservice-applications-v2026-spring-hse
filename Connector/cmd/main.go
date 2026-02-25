@@ -10,6 +10,7 @@ func main() {
 	if err := logger.Init(); err != nil {
 		panic(err)
 	}
+
 	logger.Info("Application starting")
 
 	cfg, err := config.Load("config.yaml")

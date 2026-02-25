@@ -26,6 +26,7 @@ func (c *Client) GetProjects() ([]models.ProjectResponse, error) {
 	if err != nil {
 		return nil, fmt.Errorf("do request: %w", err)
 	}
+
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
@@ -47,6 +48,7 @@ func (c *Client) GetIssuesByProject(projectKey string, startAt, maxResults int) 
 	}
 
 	jql := fmt.Sprintf("project=%s", projectKey)
+
 	u, err := url.Parse(c.buildURL("/rest/api/2/search"))
 	if err != nil {
 		return nil, fmt.Errorf("parse url: %w", err)
@@ -68,6 +70,7 @@ func (c *Client) GetIssuesByProject(projectKey string, startAt, maxResults int) 
 	if err != nil {
 		return nil, fmt.Errorf("do request: %w", err)
 	}
+
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {

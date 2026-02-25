@@ -9,7 +9,6 @@ import (
 
 func Load(path string) (*Config, error) {
 	data, err := os.ReadFile(path)
-
 	if err != nil {
 		data, err = os.ReadFile("config/config.example.yaml")
 		if err != nil {
