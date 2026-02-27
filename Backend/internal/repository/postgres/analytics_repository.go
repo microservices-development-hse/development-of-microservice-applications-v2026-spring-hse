@@ -47,7 +47,6 @@ func (r *AnalyticsRepository) GetTaskPriorityDistribution(projectID int) ([]mode
 		Where("project_id = ?", projectID).
 		Group("priority").
 		Scan(&results).Error
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to calculate priority distribution: %w", err)
 	}
@@ -63,7 +62,6 @@ func (r *AnalyticsRepository) GetTaskStatusDistribution(projectID int) ([]models
 		Where("project_id = ?", projectID).
 		Group("status").
 		Scan(&results).Error
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to calculate status distribution: %w", err)
 	}
@@ -84,7 +82,6 @@ func (r *AnalyticsRepository) CalculateTimeInState(projectID int) (map[string]fl
 		Where("issues.project_id = ?", projectID).
 		Order("status_changes.issue_id, status_changes.change_time ASC").
 		Scan(&changes).Error
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch status changes: %w", err)
 	}
@@ -109,6 +106,7 @@ func (r *AnalyticsRepository) CalculateTimeInState(projectID int) (map[string]fl
 				}
 			}
 		}
+
 		stateDurations[changes[i].ToStatus] += duration
 	}
 
@@ -126,7 +124,6 @@ func (r *AnalyticsRepository) GetProjectComplexity(projectID int) ([]models.Task
 		Where("issues.project_id = ? AND issues.closed_time IS NOT NULL", projectID).
 		Group("issues.id, issues.key, issues.closed_time, issues.created_time").
 		Scan(&results).Error
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to calculate complexity metrics: %w", err)
 	}
@@ -145,7 +142,6 @@ func (r *AnalyticsRepository) GetOpenTasksBottlenecks(projectID int) ([]models.O
 		Where("issues.project_id = ? AND issues.closed_time IS NULL", projectID).
 		Group("issues.id, issues.key, issues.status").
 		Scan(&results).Error
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to detect bottlenecks: %w", err)
 	}
