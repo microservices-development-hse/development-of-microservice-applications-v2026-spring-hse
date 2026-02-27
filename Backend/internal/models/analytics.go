@@ -5,6 +5,11 @@ import (
 	"time"
 )
 
+type DistributionItem struct {
+	Name  string `json:"name"`
+	Value int    `json:"value"`
+}
+
 type OpenTaskTime struct {
 	IDProject    int             `json:"project_id"`
 	CreationTime time.Time       `json:"creation_time"`
@@ -38,12 +43,21 @@ type ActivityByTask struct {
 	Data         json.RawMessage `json:"data"`
 }
 
-type AnalyticsRepository interface {
-	SaveTaskStateTime(data *TaskStateTime) error
-	GetStateAnalytics(projectID int) ([]TaskStateTime, error)
-	//GetAnalyticsData(projectKey string, taskNumber int) (interface{}, error)
-	//RunAnalysis(projectKey string, taskNumber int) error
-	//CheckIfAnalyzed(projectKey string) (bool, error)
+type TaskStatusDuration struct {
+	Status   string
+	Duration float64
+}
+
+type TaskComplexity struct {
+	IssueKey  string
+	LeadTime  float64
+	MoveCount int
+}
+
+type OpenTaskDuration struct {
+	IssueKey      string
+	CurrentStatus string
+	TimeInStatus  float64
 }
 
 func (OpenTaskTime) TableName() string {
@@ -64,4 +78,14 @@ func (TaskPriorityCount) TableName() string {
 
 func (ActivityByTask) TableName() string {
 	return "ActivityByTask"
+}
+
+type AnalyticsRepository interface {
+	SaveTaskStateTime(data *TaskStateTime) error
+	GetStateAnalytics(projectID int) ([]TaskStateTime, error)
+	GetTaskPriorityDistribution(projectID int) ([]DistributionItem, error)
+	GetTaskStatusDistribution(projectID int) ([]DistributionItem, error)
+	CalculateTimeInState(projectID int) (map[string]float64, error)
+	GetProjectComplexity(projectID int) ([]TaskComplexity, error)
+	GetOpenTasksBottlenecks(projectID int) ([]OpenTaskDuration, error)
 }
