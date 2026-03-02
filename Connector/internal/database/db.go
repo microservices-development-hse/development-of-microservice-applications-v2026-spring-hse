@@ -34,11 +34,11 @@ func Init(cfg config.DBSettings) error {
 
 	if err := conn.Ping(); err != nil {
 		if closeErr := conn.Close(); closeErr != nil {
-			logger.Error(fmt.Sprintf("database ping failed: %v; additionally failed to close connection: %v", err, closeErr))
+			logger.Error("database ping failed: %v; additionally failed to close connection: %v", err, closeErr)
 			return fmt.Errorf("db.Ping: %w; close: %w", err, closeErr)
 		}
 
-		logger.Error(fmt.Sprintf("db.Ping failed: %v", err))
+		logger.Error("db.Ping failed: %v", err)
 
 		return fmt.Errorf("db.Ping: %w", err)
 	}
@@ -65,7 +65,7 @@ func Close() error {
 
 	err := db.Close()
 	if err != nil {
-		logger.Error(fmt.Sprintf("failed to close database: %v", err))
+		logger.Error("failed to close database: %v", err)
 
 		db = nil
 
