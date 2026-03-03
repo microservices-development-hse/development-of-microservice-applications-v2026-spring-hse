@@ -1,4 +1,4 @@
-package domain
+package mockdomain
 
 type Project struct {
 	ID   int    `json:"id"`
@@ -18,6 +18,7 @@ type ProjectsResponse struct {
 }
 
 type OperationResult struct {
+	Status  bool   `json:"status,omitempty"`
 	Message string `json:"message,omitempty"`
 }
 
@@ -28,27 +29,13 @@ type ProjectStat struct {
 	CreatedPerDayLastWeek []int   `json:"createdPerDayLastWeek"`
 }
 
-type GraphJob struct {
-	JobID  string `json:"jobId"`
-	Status string `json:"status"`
-}
-
 type GraphResponse struct {
 	Task    string        `json:"task"`
 	Project string        `json:"project"`
 	Data    []interface{} `json:"data"`
 }
 
-type AnalyticsRepository interface {
-	GetAllProjects(page int, limit int, search string) (ProjectsResponse, error)
-	AddProjectFromJira(key string) (OperationResult, error)
-	DeleteProjectByID(id int) (OperationResult, error)
-
-	GetProjectStatByID(id string) (ProjectStat, error)
-	MakeGraph(task string, project string) (GraphJob, error)
-	GetGraph(task string, project string) (GraphResponse, error)
-	CompareGraphs(task string, projects []string) (GraphResponse, error)
-	DeleteGraphs(project string) (OperationResult, error)
-	IsAnalyzed(project string) (bool, error)
-	IsEmpty(project string) (bool, error)
+type GraphJob struct {
+	JobID  string `json:"jobId"`
+	Status string `json:"status"`
 }
