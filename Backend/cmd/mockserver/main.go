@@ -17,7 +17,11 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("ok")) })
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		if _, err := w.Write([]byte("ok")); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	})
 	mux.HandleFunc("/projects", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
 			h.GetProjects(w, r)

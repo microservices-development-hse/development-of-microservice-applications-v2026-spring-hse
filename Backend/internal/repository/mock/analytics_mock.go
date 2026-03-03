@@ -60,10 +60,16 @@ func (m *AnalyticsMock) GetAllProjects(page int, limit int, search string) (doma
 
 	total := len(filtered)
 	start := (page - 1) * limit
-	if start < 0 { start = 0 }
-	if start > total { start = total }
+	if start < 0 {
+		start = 0
+	}
+	if start > total {
+		start = total
+	}
 	end := start + limit
-	if end > total { end = total }
+	if end > total {
+		end = total
+	}
 
 	return domain.ProjectsResponse{
 		Data: filtered[start:end],
