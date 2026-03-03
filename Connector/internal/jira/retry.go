@@ -20,12 +20,12 @@ func WithRetry(cfg RetryConfig, fn func() error) error {
 			return nil
 		}
 
-		logger.Warning(fmt.Sprintf("Jira request failed, retrying in %dms: %v", currentSleep, err))
+		logger.Warning("Jira request failed, retrying in %dms: %v", currentSleep, err)
 		time.Sleep(time.Duration(currentSleep) * time.Millisecond)
 	}
 
 	err = fmt.Errorf("retry limit exceeded (maxSleep=%dms): %w", cfg.MaxTimeSleep, err)
-	logger.Error(err.Error())
+	logger.Error("%s", err.Error())
 
 	return err
 }

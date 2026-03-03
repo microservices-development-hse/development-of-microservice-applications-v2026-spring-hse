@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/microservices-development-hse/connector/internal/logger"
 	dbmodels "github.com/microservices-development-hse/connector/internal/models/db"
 )
 
@@ -27,6 +28,7 @@ func NewLoader(db *sql.DB, upsertProject, upsertIssue, insertUser *sql.Stmt) *Lo
 func (l *Loader) LoadProject(ctx context.Context, project dbmodels.Project) (int, error) {
 	tx, err := l.db.BeginTx(ctx, nil)
 	if err != nil {
+		logger.Error("loader: begin tx for project %q failed: %v", project.Key, err)
 		return 0, fmt.Errorf("loader: begin tx: %w", err)
 	}
 
@@ -38,12 +40,16 @@ func (l *Loader) LoadProject(ctx context.Context, project dbmodels.Project) (int
 		ctx, project.Key, project.Name, project.URL,
 	).Scan(&id)
 	if err != nil {
+		logger.Error("loader: upsert project %q failed: %v", project.Key, err)
 		return 0, fmt.Errorf("loader: upsert project %q: %w", project.Key, err)
 	}
 
 	if err := tx.Commit(); err != nil {
+		logger.Error("loader: commit project %q tx failed: %v", project.Key, err)
 		return 0, fmt.Errorf("loader: commit project tx: %w", err)
 	}
+
+	logger.Info("loader: project %q loaded with id=%d", project.Key, id)
 
 	return id, nil
 }
@@ -51,6 +57,7 @@ func (l *Loader) LoadProject(ctx context.Context, project dbmodels.Project) (int
 func (l *Loader) LoadIssues(ctx context.Context, issues []dbmodels.Issue, users []dbmodels.User) error {
 	tx, err := l.db.BeginTx(ctx, nil)
 	if err != nil {
+		logger.Error("loader: begin tx for issues failed: %v", err)
 		return fmt.Errorf("loader: begin tx: %w", err)
 	}
 
@@ -61,6 +68,7 @@ func (l *Loader) LoadIssues(ctx context.Context, issues []dbmodels.Issue, users 
 
 	for _, u := range users {
 		if _, err := insertUser.ExecContext(ctx, u.Username, u.DisplayName); err != nil {
+			logger.Error("loader: insert user %q failed: %v", u.Username, err)
 			return fmt.Errorf("loader: insert user %q: %w", u.Username, err)
 		}
 	}
@@ -75,13 +83,17 @@ func (l *Loader) LoadIssues(ctx context.Context, issues []dbmodels.Issue, users 
 			issue.Updated,
 			issue.Changelog,
 		); err != nil {
+			logger.Error("loader: upsert issue %q failed: %v", issue.Key, err)
 			return fmt.Errorf("loader: upsert issue %q: %w", issue.Key, err)
 		}
 	}
 
 	if err := tx.Commit(); err != nil {
+		logger.Error("loader: commit issues tx failed: %v", err)
 		return fmt.Errorf("loader: commit issues tx: %w", err)
 	}
+
+	logger.Info("loader: successfully loaded %d issues and %d users", len(issues), len(users))
 
 	return nil
 }
