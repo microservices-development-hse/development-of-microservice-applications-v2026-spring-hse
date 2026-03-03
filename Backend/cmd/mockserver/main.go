@@ -12,6 +12,7 @@ func main() {
 	handler := mock.NewMux()
 
 	log.Printf("mock backend listening on %s\n", addr)
+
 	if err := http.ListenAndServe(addr, handler); err != nil {
 		log.Fatalf("server failed: %v", err)
 	}
