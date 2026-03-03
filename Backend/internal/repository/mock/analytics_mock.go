@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/microservices-development-hse/backend/internal/domain"
+	domain "github.com/microservices-development-hse/backend/internal/mockdomain"
 )
 
 type AnalyticsMock struct {
