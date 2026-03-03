@@ -19,6 +19,7 @@ func (s *AnalyticsService) GetAllProjects(page, limit int, search string) (domai
 	if err != nil {
 		return domain.ProjectsResponse{}, fmt.Errorf("AnalyticsService.GetAllProjects: %w", err)
 	}
+
 	return res, nil
 }
 
@@ -27,6 +28,7 @@ func (s *AnalyticsService) AddProjectFromJira(key string) (domain.OperationResul
 	if err != nil {
 		return domain.OperationResult{}, fmt.Errorf("AnalyticsService.AddProjectFromJira: %w", err)
 	}
+
 	return res, nil
 }
 
@@ -35,6 +37,7 @@ func (s *AnalyticsService) DeleteProjectByID(id int) (domain.OperationResult, er
 	if err != nil {
 		return domain.OperationResult{}, fmt.Errorf("AnalyticsService.DeleteProjectByID: %w", err)
 	}
+
 	return res, nil
 }
 
@@ -43,6 +46,7 @@ func (s *AnalyticsService) GetProjectStatByID(id string) (domain.ProjectStat, er
 	if err != nil {
 		return domain.ProjectStat{}, fmt.Errorf("AnalyticsService.GetProjectStatByID: %w", err)
 	}
+
 	return res, nil
 }
 
@@ -51,6 +55,7 @@ func (s *AnalyticsService) MakeGraph(task, project string) (domain.GraphJob, err
 	if err != nil {
 		return domain.GraphJob{}, fmt.Errorf("AnalyticsService.MakeGraph: %w", err)
 	}
+
 	return res, nil
 }
 
@@ -59,6 +64,7 @@ func (s *AnalyticsService) GetGraph(task, project string) (domain.GraphResponse,
 	if err != nil {
 		return domain.GraphResponse{}, fmt.Errorf("AnalyticsService.GetGraph: %w", err)
 	}
+
 	return res, nil
 }
 
@@ -67,6 +73,7 @@ func (s *AnalyticsService) CompareGraphs(task string, projects []string) (domain
 	if err != nil {
 		return domain.GraphResponse{}, fmt.Errorf("AnalyticsService.CompareGraphs: %w", err)
 	}
+
 	return res, nil
 }
 
@@ -75,6 +82,7 @@ func (s *AnalyticsService) DeleteGraphs(project string) (domain.OperationResult,
 	if err != nil {
 		return domain.OperationResult{}, fmt.Errorf("AnalyticsService.DeleteGraphs: %w", err)
 	}
+
 	return res, nil
 }
 
@@ -83,6 +91,7 @@ func (s *AnalyticsService) IsAnalyzed(project string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("AnalyticsService.IsAnalyzed: %w", err)
 	}
+
 	return res, nil
 }
 
@@ -91,5 +100,6 @@ func (s *AnalyticsService) IsEmpty(project string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("AnalyticsService.IsEmpty: %w", err)
 	}
+
 	return res, nil
 }

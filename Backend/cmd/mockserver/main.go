@@ -27,10 +27,12 @@ func main() {
 			h.GetProjects(w, r)
 			return
 		}
+
 		if r.Method == http.MethodPost {
 			h.AddProject(w, r)
 			return
 		}
+
 		http.NotFound(w, r)
 	})
 	mux.HandleFunc("/projects/", func(w http.ResponseWriter, r *http.Request) {
@@ -38,10 +40,12 @@ func main() {
 			h.DeleteProject(w, r)
 			return
 		}
+
 		if strings.HasSuffix(r.URL.Path, "/stat") {
 			h.ProjectStat(w, r)
 			return
 		}
+
 		http.NotFound(w, r)
 	})
 
@@ -59,16 +63,19 @@ func main() {
 			w.Header().Set("Access-Control-Allow-Origin", "*")
 			w.Header().Set("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS")
 			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
 			if r.Method == http.MethodOptions {
 				w.WriteHeader(http.StatusNoContent)
 				return
 			}
+
 			hh.ServeHTTP(w, r)
 		})
 	}(mux)
 
 	addr := ":8080"
 	log.Printf("mock backend listening on %s\n", addr)
+
 	if err := http.ListenAndServe(addr, handlerWithCORS); err != nil {
 		log.Fatalf("server failed: %v", err)
 	}
