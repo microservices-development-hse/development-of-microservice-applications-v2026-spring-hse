@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/go-playground/validator/v10"
@@ -44,7 +45,7 @@ func LoadConfig(path string) (*Config, error) {
 
 	validate := validator.New()
 	if err := validate.Struct(config); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("config validation failed: %w", err)
 	}
 
 	return &config, nil

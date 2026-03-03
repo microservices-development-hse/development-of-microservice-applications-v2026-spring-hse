@@ -3,6 +3,7 @@ package postgres
 import (
 	"database/sql"
 	"embed"
+	"errors"
 	"fmt"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -21,7 +22,7 @@ func InitDB(dsn string) (*gorm.DB, func(), error) {
 
 	sqlDB, err := db.DB()
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("failed to get sql.DB from gorm: %w", err)
 	}
 
 	if err := runMigrations(sqlDB); err != nil {
@@ -43,23 +44,24 @@ var migrationsFS embed.FS
 func runMigrations(db *sql.DB) error {
 	d, err := iofs.New(migrationsFS, "migrations")
 	if err != nil {
-		return fmt.Errorf("failed to create iofs source: %w", err)
+		return fmt.Errorf("failed to create migration source: %w", err)
 	}
 
 	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create migration driver: %w", err)
 	}
 
 	m, err := migrate.NewWithInstance("iofs", d, "postgres", driver)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create migrate instance: %w", err)
 	}
 
-	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-		return err
+	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		return fmt.Errorf("migration up failed: %w", err)
 	}
 
 	logrus.Infof("Migrations applied successfully")
+
 	return nil
 }

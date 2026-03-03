@@ -11,8 +11,12 @@ type StatusChanges struct {
 }
 
 type HistoryRepository interface {
-	Add(history *StatusChanges) error
-	GetByIssueID(issueID int) ([]StatusChanges, error)
+	AddStatusChanges(history *StatusChanges) error
+	GetHistoryByIssueID(issueID int) ([]StatusChanges, error)
 	GetByAuthorID(authorID int) ([]StatusChanges, error)
 	DeleteByIssueID(issueID int) error
+}
+
+func (StatusChanges) TableName() string {
+	return "StatusChanges"
 }

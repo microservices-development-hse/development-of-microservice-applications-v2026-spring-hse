@@ -25,12 +25,15 @@ func (hook *CustomHook) Levels() []logrus.Level {
 func (hook *CustomHook) Fire(entry *logrus.Entry) error {
 	line, err := entry.String()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to format log entry: %w", err)
 	}
 
 	_, err = hook.File.WriteString(line)
+	if err != nil {
+		return fmt.Errorf("failed to write log to file: %w", err)
+	}
 
-	return err
+	return nil
 }
 
 func InitLogger() error {
