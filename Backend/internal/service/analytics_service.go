@@ -44,6 +44,7 @@ func (s *analyticsService) RunFullAnalysis(projectID int) {
 
 		for _, task := range analysisTasks {
 			wg.Add(1)
+
 			go func(t struct {
 				name string
 				fn   func(context.Context, int)
@@ -63,6 +64,7 @@ func (s *analyticsService) RunFullAnalysis(projectID int) {
 
 func (s *analyticsService) processDistribution(ctx context.Context, projectID int, distType string) {
 	var data []models.DistributionItem
+
 	var err error
 
 	switch distType {
@@ -89,6 +91,7 @@ func (s *analyticsService) processComplexity(ctx context.Context, projectID int)
 		logrus.Errorf("Service [complexity]: %v", err)
 		return
 	}
+
 	s.saveSnapshot(ctx, projectID, "complexity", data)
 }
 
@@ -98,6 +101,7 @@ func (s *analyticsService) processBottlenecks(ctx context.Context, projectID int
 		logrus.Errorf("Service [bottlenecks]: %v", err)
 		return
 	}
+
 	s.saveSnapshot(ctx, projectID, "bottlenecks", data)
 }
 

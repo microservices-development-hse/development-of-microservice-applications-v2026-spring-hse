@@ -21,6 +21,7 @@ func (r *AnalyticsRepository) SaveSnapshot(ctx context.Context, snapshot *models
 
 func (r *AnalyticsRepository) GetLatestSnapshot(ctx context.Context, projectID int, reportType string) (*models.AnalyticsSnapshot, error) {
 	var snapshot models.AnalyticsSnapshot
+
 	err := r.db.Where("project_id = ? AND type = ?", projectID, reportType).
 		Order("creation_time DESC").
 		First(&snapshot).Error
@@ -33,26 +34,31 @@ func (r *AnalyticsRepository) GetLatestSnapshot(ctx context.Context, projectID i
 
 func (r *AnalyticsRepository) GetTaskStatusDistribution(ctx context.Context, projectID int) ([]models.DistributionItem, error) {
 	var results []models.DistributionItem
+
 	err := r.db.WithContext(ctx).Table("Issue").
 		Select("status as name, count(*) as value").
 		Where("project_id = ?", projectID).
 		Group("status").
 		Scan(&results).Error
+
 	return results, err
 }
 
 func (r *AnalyticsRepository) GetTaskPriorityDistribution(ctx context.Context, projectID int) ([]models.DistributionItem, error) {
 	var results []models.DistributionItem
+
 	err := r.db.WithContext(ctx).Table("Issue").
 		Select("priority as name, count(*) as value").
 		Where("project_id = ?", projectID).
 		Group("priority").
 		Scan(&results).Error
+
 	return results, err
 }
 
 func (r *AnalyticsRepository) GetProjectComplexity(ctx context.Context, projectID int) ([]models.TaskComplexity, error) {
 	var results []models.TaskComplexity
+
 	err := r.db.WithContext(ctx).Table("Issue").
 		Select("key as issue_key, "+
 			"EXTRACT(EPOCH FROM (closed_time - created_time))/3600 as lead_time, "+
@@ -61,11 +67,13 @@ func (r *AnalyticsRepository) GetProjectComplexity(ctx context.Context, projectI
 		Where("Issue.project_id = ? AND Issue.closed_time IS NOT NULL", projectID).
 		Group("Issue.id, Issue.key, Issue.closed_time, Issue.created_time").
 		Scan(&results).Error
+
 	return results, err
 }
 
 func (r *AnalyticsRepository) GetOpenTasksBottlenecks(ctx context.Context, projectID int) ([]models.OpenTaskDuration, error) {
 	var results []models.OpenTaskDuration
+
 	query := `
 		SELECT 
 			i.key as issue_key, 
@@ -77,11 +85,13 @@ func (r *AnalyticsRepository) GetOpenTasksBottlenecks(ctx context.Context, proje
 		GROUP BY i.id, i.key, i.status, i.created_time
 	`
 	err := r.db.WithContext(ctx).Raw(query, projectID).Scan(&results).Error
+
 	return results, err
 }
 
 func (r *AnalyticsRepository) CalculateTimeInState(ctx context.Context, projectID int) (map[string]float64, error) {
 	var changes []models.StatusChanges
+
 	err := r.db.Table("StatusChanges").
 		Joins("JOIN Issue ON Issue.id = StatusChanges.issue_id").
 		Where("Issue.project_id = ?", projectID).
@@ -92,6 +102,7 @@ func (r *AnalyticsRepository) CalculateTimeInState(ctx context.Context, projectI
 	}
 
 	stateDurations := make(map[string]float64)
+
 	for i := 1; i < len(changes); i++ {
 		if changes[i].IssueID == changes[i-1].IssueID {
 			duration := changes[i].ChangeTime.Sub(changes[i-1].ChangeTime).Hours()
