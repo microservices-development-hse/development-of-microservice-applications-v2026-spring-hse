@@ -15,17 +15,17 @@ func main() {
 
 	cfg, err := config.Load("config.yaml")
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error("%s", err.Error())
 		return
 	}
 
 	if err := database.Init(cfg.DBSettings); err != nil {
-		logger.Error(err.Error())
+		logger.Error("%s", err.Error())
 		return
 	}
 
 	if err := database.InitStatements(); err != nil {
-		logger.Error(err.Error())
+		logger.Error("%s", err.Error())
 		return
 	}
 

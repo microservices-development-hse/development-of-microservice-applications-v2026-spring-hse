@@ -18,6 +18,11 @@ func Init() error {
 	var err error
 
 	once.Do(func() {
+		if e := os.MkdirAll("logs", 0755); e != nil {
+			err = e
+			return
+		}
+
 		logFile, e := os.OpenFile("logs/logs.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 		if e != nil {
 			err = e
@@ -42,20 +47,20 @@ func Init() error {
 	return err
 }
 
-func Info(msg string) {
+func Info(format string, args ...interface{}) {
 	if infoLogger != nil {
-		infoLogger.Println(msg)
+		infoLogger.Printf(format, args...)
 	}
 }
 
-func Warning(msg string) {
+func Warning(format string, args ...interface{}) {
 	if warningLogger != nil {
-		warningLogger.Println(msg)
+		warningLogger.Printf(format, args...)
 	}
 }
 
-func Error(msg string) {
+func Error(format string, args ...interface{}) {
 	if errorLogger != nil {
-		errorLogger.Println(msg)
+		errorLogger.Printf(format, args...)
 	}
 }
