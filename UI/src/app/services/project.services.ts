@@ -1,32 +1,50 @@
-import {Injectable} from "@angular/core";
-import {HttpClient} from "@angular/common/http";
-import {Observable} from "rxjs";
-import {IRequest} from "../models/request.model";
-import {ConfigurationService} from "./configuration.services";
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { IRequest } from '../models/request.model';
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root'
 })
 export class ProjectServices {
-  urlPath = ""
+  private urlPath: string = 'http://localhost:8080'; // Временное решение
 
-  constructor(private http: HttpClient, private configurationService: ConfigurationService) {
-    this.urlPath = configurationService.getValue("pathUrl")
+  constructor(private http: HttpClient) {
   }
 
+  getAll(page: number = 1, searchName: string = ''): Observable<IRequest> {
+    const params = new HttpParams()
+      .set('page', String(page))
+      .set('limit', '20')
+      .set('search', searchName || '');
 
-  // @ts-ignore
-  getAll(page: number, searchName: String): Observable<IRequest>{
-    // TODO Написать запрос на получение всех проектов, учесть пагинацию, поиск
+    const url = `${this.urlPath}/projects`;
+    return this.http.get<IRequest>(url, { params }).pipe(
+      catchError(err => {
+        console.error('ProjectServices.getAll error', err);
+        return throwError(() => err);
+      })
+    );
   }
 
-  // @ts-ignore
-  addProject(key: String): Observable<IRequest>{
-    // TODO Написать запрос на добавление проета в БД. Добавление происходит по ключу проекта
+  addProject(key: string): Observable<IRequest> {
+    const url = `${this.urlPath}/connector/updateProject`;
+    return this.http.post<IRequest>(url, { key }).pipe(
+      catchError(err => {
+        console.error('ProjectServices.addProject error', err);
+        return throwError(() => err);
+      })
+    );
   }
 
-  // @ts-ignore
-  deleteProject(id: Number): Observable<IRequest> {
-    // TODO Написать запрос на удаление проекта. Удаление происходит по id проекта в БД.
+  deleteProject(id: number): Observable<IRequest> {
+    const url = `${this.urlPath}/projects/${id}`;
+    return this.http.delete<IRequest>(url).pipe(
+      catchError(err => {
+        console.error('ProjectServices.deleteProject error', err);
+        return throwError(() => err);
+      })
+    );
   }
 }

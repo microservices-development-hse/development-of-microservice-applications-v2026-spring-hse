@@ -1,9 +1,9 @@
 export class IProj {
   constructor(
-  public Existence: Boolean,
-  public Id: Number,
-  public Key: String,
-  public Name: String,
-  public Url: String
+  public Existence: boolean,
+  public Id: number,
+  public Key: string,
+  public Name: string,
+  public Url: string
 ){}
 }

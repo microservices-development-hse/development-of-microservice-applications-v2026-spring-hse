@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import {DatabaseProjectServices} from "../services/database-project.services";
 import {IProj} from "../models/proj.model";
 import {CheckedProject} from "../models/check-element.model";
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-my-project-page',
@@ -19,13 +20,26 @@ export class MyProjectPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.loading = true
-    this.myProjectService.getAll().subscribe(projects => {
-      this.noProjects = projects.data.length == 0;
-      this.myProjects = projects.data
-      this.loading = false
-      this.inited = true
-    }, error => {
-      // TODO Обработать ошибки от сервера
+    this.myProjectService.getAll().subscribe({
+        next: projects => {
+            this.noProjects = projects.data.length == 0;
+            this.myProjects = projects.data
+            this.loading = false
+            this.inited = true
+        },
+        error: (err: HttpErrorResponse) => {
+            console.error('MyProjectPage error:', err);
+            if (err.status === 0) {
+                alert('Сервер недоступен.');
+            } else if (err.status === 404) {
+                alert('Данные не найдены.');
+            } else if (err.status === 500) {
+                alert('Ошибка при анализе проекта.');
+            } else {
+                alert(err.error?.message || 'Неизвестная ошибка');
+            }
+            this.loading = false;
+        }
     })
   }
 

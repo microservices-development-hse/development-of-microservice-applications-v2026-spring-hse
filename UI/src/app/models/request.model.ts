@@ -1,14 +1,12 @@
-import {Links} from "./links.model";
-import {PageInfo} from "./pageInfo.model";
+import { Links } from "./links.model";
+import { PageInfo } from "./pageInfo.model";
+import { IProj } from "./proj.model";
 
-export class IRequest {
-  constructor(
-  public _links: Links,
-  public data: [],
-  public message: String,
-  public name: String,
-  public pageInfo: PageInfo,
-  public status: Boolean){}
+export interface IRequest {
+  _links?: Links;
+  data: IProj[];
+  message?: string;
+  name?: string;
+  pageInfo: PageInfo;
+  status?: boolean;
 }
-
-

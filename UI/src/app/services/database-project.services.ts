@@ -1,58 +1,99 @@
-import {Injectable} from "@angular/core";
-import {HttpClient} from "@angular/common/http";
-import {Observable} from "rxjs";
-import {IRequest} from "../models/request.model";
-import {IRequestObject} from "../models/requestObj.model";
-import {ConfigurationService} from "./configuration.services";
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { IRequest } from '../models/request.model';
+import { IRequestObject } from '../models/requestObj.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DatabaseProjectServices {
-  urlPath = ""
+  private urlPath: string = 'http://localhost:8080'; // Временное решение
 
-  constructor(private http: HttpClient, private configurationService: ConfigurationService) {
-    this.urlPath = configurationService.getValue("pathUrl")
+  constructor(private http: HttpClient) {
   }
 
-
-  // @ts-ignore
-  getAll(): Observable<IRequest>{
-    // TODO Написать запрос на получение всех проектов
+  getAll(): Observable<IRequest> {
+    const url = `${this.urlPath}/projects`;
+    return this.http.get<IRequest>(url).pipe(
+      catchError(err => {
+        console.error('DatabaseProjectServices.getAll error', err);
+        return throwError(() => err);
+      })
+    );
   }
 
-  // @ts-ignore
   getProjectStatByID(id: string): Observable<IRequestObject> {
-    // TODO Написать запрос на получение статистики проекта по ID
+    const url = `${this.urlPath}/projects/${encodeURIComponent(id)}/stat`;
+    return this.http.get<IRequestObject>(url).pipe(
+      catchError(err => {
+        console.error('DatabaseProjectServices.getProjectStatByID error', err);
+        return throwError(() => err);
+      })
+    );
   }
 
-  // @ts-ignore
   getComplitedGraph(taskNumber: string, projectName: Array<string>): Observable<IRequestObject> {
-    // TODO Написать запрос на получение сравнения
+    const url = `${this.urlPath}/graph/compare`;
+    return this.http.post<IRequestObject>(url, { task: taskNumber, projects: projectName }).pipe(
+      catchError(err => {
+        console.error('DatabaseProjectServices.getComplitedGraph error', err);
+        return throwError(() => err);
+      })
+    );
   }
 
-  // @ts-ignore
   getGraph(taskNumber: string, projectName: string): Observable<IRequestObject> {
-    // TODO Написать запрос на получение графа
+    const params = new HttpParams().set('task', taskNumber).set('project', projectName);
+    const url = `${this.urlPath}/graph/get`;
+    return this.http.get<IRequestObject>(url, { params }).pipe(
+      catchError(err => {
+        console.error('DatabaseProjectServices.getGraph error', err);
+        return throwError(() => err);
+      })
+    );
   }
 
-  // @ts-ignore
   makeGraph(taskNumber: string, projectName: string): Observable<IRequestObject> {
-    // TODO Написать запрос на создание графа
+    const url = `${this.urlPath}/graph/make`;
+    return this.http.post<IRequestObject>(url, { task: taskNumber, project: projectName }).pipe(
+      catchError(err => {
+        console.error('DatabaseProjectServices.makeGraph error', err);
+        return throwError(() => err);
+      })
+    );
   }
 
-  // @ts-ignore
   deleteGraphs(projectName: string): Observable<IRequestObject> {
-    // TODO Написать запрос на удаление графа
+    const url = `${this.urlPath}/graph/delete`;
+    return this.http.request<IRequestObject>('delete', url, { body: { project: projectName } }).pipe(
+      catchError(err => {
+        console.error('DatabaseProjectServices.deleteGraphs error', err);
+        return throwError(() => err);
+      })
+    );
   }
 
-  // @ts-ignore
-  isAnalyzed(projectName: string): Observable<IRequestObject>{
-    // TODO Написать запрос
+  isAnalyzed(projectName: string): Observable<IRequestObject> {
+    const url = `${this.urlPath}/isAnalyzed`;
+    const params = new HttpParams().set('project', projectName);
+    return this.http.get<IRequestObject>(url, { params }).pipe(
+      catchError(err => {
+        console.error('DatabaseProjectServices.isAnalyzed error', err);
+        return throwError(() => err);
+      })
+    );
   }
 
-  // @ts-ignore
-  isEmpty(projectName: string): Observable<IRequestObject>{
-    // TODO Написать запрос
+  isEmpty(projectName: string): Observable<IRequestObject> {
+    const url = `${this.urlPath}/isEmpty`;
+    const params = new HttpParams().set('project', projectName);
+    return this.http.get<IRequestObject>(url, { params }).pipe(
+      catchError(err => {
+        console.error('DatabaseProjectServices.isEmpty error', err);
+        return throwError(() => err);
+      })
+    );
   }
 }
