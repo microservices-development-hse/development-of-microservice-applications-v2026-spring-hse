@@ -62,7 +62,7 @@ func CloseStatements() {
 	} {
 		if s != nil {
 			if err := s.Close(); err != nil {
-				logger.Error(fmt.Sprintf("failed to close statement: %v", err))
+				logger.Error("failed to close statement: %v", err)
 			}
 		}
 	}
