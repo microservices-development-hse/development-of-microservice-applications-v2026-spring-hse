@@ -56,6 +56,7 @@ func (h *AnalyticsHandler) GetAnalytics(w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+
 	if _, err := w.Write(snapshot.Data); err != nil {
 		logrus.Errorf("failed to write analytics response: %v", err)
 	}

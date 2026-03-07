@@ -22,5 +22,6 @@ func NewRouter(h *AnalyticsHandler) *chi.Mux {
 			})
 		})
 	})
+
 	return r
 }

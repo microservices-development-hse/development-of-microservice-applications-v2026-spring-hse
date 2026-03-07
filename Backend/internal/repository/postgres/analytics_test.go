@@ -73,7 +73,6 @@ func TestSaveSnapshot(t *testing.T) {
 	gormDB, err := gorm.Open(postgres.New(postgres.Config{
 		Conn: db,
 	}), &gorm.Config{})
-
 	if err != nil {
 		t.Fatalf("failed to open gorm: %s", err)
 	}
