@@ -22,7 +22,8 @@ func (r *AnalyticsRepository) SaveSnapshot(ctx context.Context, snapshot *models
 func (r *AnalyticsRepository) GetLatestSnapshot(ctx context.Context, projectID int, reportType string) (*models.AnalyticsSnapshot, error) {
 	var snapshot models.AnalyticsSnapshot
 
-	err := r.db.Where("project_id = ? AND type = ?", projectID, reportType).
+	err := r.db.WithContext(ctx).
+		Model(&models.AnalyticsSnapshot{}).Where("project_id = ? AND type = ?", projectID, reportType).
 		Order("creation_time DESC").
 		First(&snapshot).Error
 	if err != nil {

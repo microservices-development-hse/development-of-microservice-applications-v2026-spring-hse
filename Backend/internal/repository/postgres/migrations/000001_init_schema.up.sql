@@ -1,12 +1,13 @@
+-- Базовые таблицы
+CREATE TABLE "Author" (
+    "id" SERIAL PRIMARY KEY,
+    "name" TEXT NOT NULL
+);
+
 CREATE TABLE "Project" (
     "id" SERIAL PRIMARY KEY,
     "key" VARCHAR(10) UNIQUE NOT NULL,
     "title" TEXT NOT NULL
-);
-
-CREATE TABLE "Author" (
-    "id" SERIAL PRIMARY KEY,
-    "name" TEXT NOT NULL
 );
 
 CREATE TABLE "Issue" (
@@ -34,40 +35,13 @@ CREATE TABLE "StatusChanges" (
     "to_status" TEXT
 );
 
-CREATE TABLE "OpenTaskTime" (
+CREATE TABLE "AnalyticsSnapshot" (
+    "id" SERIAL PRIMARY KEY,
     "project_id" INTEGER NOT NULL REFERENCES "Project"("id") ON DELETE CASCADE,
+    "type" VARCHAR(50) NOT NULL,
     "creation_time" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    "data" JSONB NOT NULL,
-    PRIMARY KEY ("project_id")
+    "data" JSONB NOT NULL
 );
 
-CREATE TABLE "TaskStateTime" (
-    "project_id" INTEGER NOT NULL REFERENCES "Project"("id") ON DELETE CASCADE,
-    "creation_time" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    "state" TEXT NOT NULL,
-    "data" JSONB NOT NULL,
-    PRIMARY KEY ("project_id", "state")
-);
-
-CREATE TABLE "ComplexityTaskTime" (
-    "project_id" INTEGER NOT NULL REFERENCES "Project"("id") ON DELETE CASCADE,
-    "creation_time" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    "data" JSONB NOT NULL,
-    PRIMARY KEY ("project_id")
-);
-
-CREATE TABLE "TaskPriorityCount" (
-    "project_id" INTEGER NOT NULL REFERENCES "Project"("id") ON DELETE CASCADE,
-    "creation_time" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    "state" TEXT NOT NULL,
-    "data" JSONB NOT NULL,
-    PRIMARY KEY ("project_id", "state")
-);
-
-CREATE TABLE "ActivityByTask" (
-    "project_id" INTEGER NOT NULL REFERENCES "Project"("id") ON DELETE CASCADE,
-    "creation_time" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    "state" TEXT NOT NULL,
-    "data" JSONB NOT NULL,
-    PRIMARY KEY ("project_id", "state")
-);
+CREATE INDEX "idx_analytics_snapshot_project_id" ON "AnalyticsSnapshot" ("project_id");
+CREATE INDEX "idx_analytics_snapshot_type" ON "AnalyticsSnapshot" ("type");
