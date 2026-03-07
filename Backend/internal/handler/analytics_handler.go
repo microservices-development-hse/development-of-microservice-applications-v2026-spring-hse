@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/microservices-development-hse/backend/internal/models"
 	"github.com/microservices-development-hse/backend/internal/service"
+	"github.com/sirupsen/logrus"
 )
 
 type AnalyticsHandler struct {
@@ -55,7 +56,9 @@ func (h *AnalyticsHandler) GetAnalytics(w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(snapshot.Data)
+	if _, err := w.Write(snapshot.Data); err != nil {
+		logrus.Errorf("failed to write analytics response: %v", err)
+	}
 }
 
 func (h *AnalyticsHandler) Recalculate(w http.ResponseWriter, r *http.Request) {
@@ -68,5 +71,9 @@ func (h *AnalyticsHandler) Recalculate(w http.ResponseWriter, r *http.Request) {
 	h.service.RunFullAnalysis(projectID)
 
 	w.WriteHeader(http.StatusAccepted)
-	json.NewEncoder(w).Encode(map[string]string{"status": "analysis started"})
+	w.Header().Set("Content-Type", "application/json")
+
+	if err := json.NewEncoder(w).Encode(map[string]string{"status": "analysis started"}); err != nil {
+		logrus.Errorf("failed to encode recalculate response: %v", err)
+	}
 }

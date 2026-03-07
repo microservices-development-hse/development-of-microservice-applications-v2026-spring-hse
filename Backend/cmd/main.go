@@ -22,6 +22,7 @@ func main() {
 	if err != nil {
 		logrus.Fatalf("Config error: %v", err)
 	}
+
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable",
 		cfg.DBSettings.DBHost,
 		cfg.DBSettings.DBUser,
@@ -29,7 +30,6 @@ func main() {
 		cfg.DBSettings.DBName,
 		cfg.DBSettings.DBPort,
 	)
-	//dsn := "host=localhost user=postgres password=yourpassword dbname=postgres port=5432 sslmode=disable"
 
 	db, closeDB, err := postgres.InitDB(dsn)
 	if err != nil {

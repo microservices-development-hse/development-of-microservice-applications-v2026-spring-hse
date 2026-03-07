@@ -18,7 +18,12 @@ func TestGetLatestSnapshot(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to open sqlmock: %s", err)
 	}
-	defer db.Close()
+
+	defer func() {
+		if closeErr := db.Close(); closeErr != nil {
+			t.Errorf("failed to close sqlmock: %v", closeErr)
+		}
+	}()
 
 	gormDB, err := gorm.Open(postgres.New(postgres.Config{
 		Conn: db,
@@ -46,6 +51,7 @@ func TestGetLatestSnapshot(t *testing.T) {
 		res, err := repo.GetLatestSnapshot(context.Background(), projectID, reportType)
 
 		assert.NoError(t, err)
+
 		if assert.NotNil(t, res) {
 			assert.Equal(t, reportType, res.Type)
 			assert.JSONEq(t, expectedData, string(res.Data))
@@ -57,11 +63,20 @@ func TestSaveSnapshot(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to open sqlmock: %s", err)
 	}
-	defer db.Close()
+
+	defer func() {
+		if closeErr := db.Close(); closeErr != nil {
+			t.Errorf("failed to close sqlmock: %v", closeErr)
+		}
+	}()
 
 	gormDB, err := gorm.Open(postgres.New(postgres.Config{
 		Conn: db,
 	}), &gorm.Config{})
+
+	if err != nil {
+		t.Fatalf("failed to open gorm: %s", err)
+	}
 
 	repo := NewAnalyticsRepository(gormDB)
 

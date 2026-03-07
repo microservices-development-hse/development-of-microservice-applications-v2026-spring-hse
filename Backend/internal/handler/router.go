@@ -16,15 +16,11 @@ func NewRouter(h *AnalyticsHandler) *chi.Mux {
 
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Route("/projects/{projectID}", func(r chi.Router) {
-
 			r.Route("/analytics", func(r chi.Router) {
 				r.Get("/", h.GetAnalytics)
-
 				r.Post("/recalculate", h.Recalculate)
 			})
-
 		})
 	})
-
 	return r
 }
