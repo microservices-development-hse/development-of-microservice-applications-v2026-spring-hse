@@ -1,8 +1,8 @@
-rogramSettings:
+ProgramSettings:
   resourceTimeout: 5
   analyticsTimeout: 15
   bindAddress: "0.0.0.0"
-  port: 8000
+  bindPort: 8000
 
 DBSettings:
   dbUser: "postgres"
