@@ -87,7 +87,20 @@ func (h *ProjectHandler) DeleteProject(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProjectHandler) GetAllProjects(w http.ResponseWriter, r *http.Request) {
-	projects, err := h.service.GetProjectsList()
+	limitStr := r.URL.Query().Get("limit")
+	pageStr := r.URL.Query().Get("page")
+
+	limit, _ := strconv.Atoi(limitStr)
+	if limit <= 0 {
+		limit = 10
+	}
+
+	page, _ := strconv.Atoi(pageStr)
+	if page <= 0 {
+		page = 1
+	}
+
+	projects, totalCount, err := h.service.GetProjectsList(limit, page)
 	if err != nil {
 		logrus.Errorf("Handler: failed to get projects list: %v", err)
 		h.sendError(w, http.StatusInternalServerError, "Could not fetch projects")
@@ -95,7 +108,16 @@ func (h *ProjectHandler) GetAllProjects(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	h.sendJSON(w, http.StatusOK, projects)
+	response := map[string]interface{}{
+		"projects": projects,
+		"pageInfo": map[string]interface{}{
+			"currentPage":   page,
+			"projectsCount": totalCount,
+			"pagesCount":    (totalCount + limit - 1) / limit,
+		},
+	}
+
+	h.sendJSON(w, http.StatusOK, response)
 }
 
 func (h *ProjectHandler) GetProjectByID(w http.ResponseWriter, r *http.Request) {

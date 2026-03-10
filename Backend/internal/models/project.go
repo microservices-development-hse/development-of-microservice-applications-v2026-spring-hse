@@ -9,7 +9,7 @@ type Project struct {
 type ProjectRepository interface {
 	CreateProject(project *Project) error
 	UpdateProject(project *Project) error
-	GetAllProjects() ([]Project, error)
+	GetAllProjects(limit, offset int) ([]Project, int, error)
 	GetProjectByKey(key string) (*Project, error)
 	GetProjectByID(id int) (*Project, error)
 	GetBasicStats(projectID int) (map[string]interface{}, error)

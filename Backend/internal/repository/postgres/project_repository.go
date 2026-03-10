@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/microservices-development-hse/backend/internal/models"
 	"github.com/sirupsen/logrus"
@@ -30,16 +31,21 @@ func (r *ProjectRepository) CreateProject(project *models.Project) error {
 	return nil
 }
 
-func (r *ProjectRepository) GetAllProjects() ([]models.Project, error) {
+func (r *ProjectRepository) GetAllProjects(limit, offset int) ([]models.Project, int, error) {
 	var projects []models.Project
+	var totalCount int64
 
-	err := r.db.Find(&projects).Error
-	if err != nil {
-		logrus.Errorf("Failed to get all projects: %v", err)
-		return nil, err
+	countQuery := `SELECT count(*) FROM "Project"`
+	if err := r.db.Raw(countQuery).Scan(&totalCount).Error; err != nil {
+		return nil, 0, fmt.Errorf("failed to count projects: %w", err)
 	}
 
-	return projects, nil
+	dataQuery := `SELECT * FROM "Project" LIMIT ? OFFSET ?`
+	if err := r.db.Raw(dataQuery, limit, offset).Scan(&projects).Error; err != nil {
+		return nil, 0, fmt.Errorf("failed to fetch projects page: %w", err)
+	}
+
+	return projects, int(totalCount), nil
 }
 
 func (r *ProjectRepository) GetProjectByID(id int) (*models.Project, error) {

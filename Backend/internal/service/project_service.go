@@ -8,7 +8,7 @@ import (
 )
 
 type ProjectService interface {
-	GetProjectsList() ([]models.Project, error)
+	GetProjectsList(limit, page int) ([]models.Project, int, error)
 	GetProjectDetails(id int) (*models.Project, map[string]interface{}, error)
 	CreateProject(key, title string) (*models.Project, error)
 	UpdateProject(id int, key, title string) (*models.Project, error)
@@ -67,14 +67,16 @@ func (s *projectService) DeleteProject(id int) error {
 	return nil
 }
 
-func (s *projectService) GetProjectsList() ([]models.Project, error) {
-	projects, err := s.repo.GetAllProjects()
+func (s *projectService) GetProjectsList(limit, page int) ([]models.Project, int, error) {
+	offset := (page - 1) * limit
+
+	projects, totalCount, err := s.repo.GetAllProjects(limit, offset)
 	if err != nil {
 		logrus.Errorf("Service: could not retrieve projects list: %v", err)
-		return nil, fmt.Errorf("repository error: %w", err)
+		return nil, 0, fmt.Errorf("repository error: %w", err)
 	}
 
-	return projects, nil
+	return projects, totalCount, nil
 }
 
 func (s *projectService) GetProjectDetails(id int) (*models.Project, map[string]interface{}, error) {
