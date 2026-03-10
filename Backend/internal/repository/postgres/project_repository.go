@@ -33,6 +33,7 @@ func (r *ProjectRepository) CreateProject(project *models.Project) error {
 
 func (r *ProjectRepository) GetAllProjects(limit, offset int) ([]models.Project, int, error) {
 	var projects []models.Project
+
 	var totalCount int64
 
 	countQuery := `SELECT count(*) FROM "Project"`
