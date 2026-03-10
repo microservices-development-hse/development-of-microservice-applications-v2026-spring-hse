@@ -12,6 +12,7 @@ type ProjectRepository interface {
 	GetAllProjects() ([]Project, error)
 	GetProjectByKey(key string) (*Project, error)
 	GetProjectByID(id int) (*Project, error)
+	GetBasicStats(projectID int) (map[string]interface{}, error)
 	DeleteProject(id int) error
 }
 

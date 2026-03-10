@@ -38,21 +38,21 @@ func main() {
 
 	defer closeDB()
 
-	repo := postgres.NewAnalyticsRepository(db)
-	serv := service.NewAnalyticsService(repo)
-	hand := handler.NewAnalyticsHandler(serv, repo)
+	projectRepo := postgres.NewProjectRepository(db)
+	analyticsRepo := postgres.NewAnalyticsRepository(db)
 
-	r := handler.NewRouter(hand)
+	projectService := service.NewProjectService(projectRepo)
+	analyticsService := service.NewAnalyticsService(analyticsRepo)
+
+	projectHandler := handler.NewProjectHandler(projectService)
+	analyticsHandler := handler.NewAnalyticsHandler(analyticsService)
+
+	r := handler.NewRouter(cfg, projectHandler, analyticsHandler)
 
 	addr := fmt.Sprintf("%s:%d", cfg.ProgramSettings.BindAddress, cfg.ProgramSettings.BindPort)
 	logrus.Infof("Server is starting at %s", addr)
 
-	server := &http.Server{
-		Addr:    addr,
-		Handler: r,
-	}
-
-	if err := server.ListenAndServe(); err != nil {
+	if err := http.ListenAndServe(addr, r); err != nil {
 		logrus.Fatalf("Server failed: %v", err)
 	}
 }

@@ -78,6 +78,26 @@ func (r *ProjectRepository) GetProjectByKey(key string) (*models.Project, error)
 	return &project, nil
 }
 
+func (r *ProjectRepository) GetBasicStats(projectID int) (map[string]interface{}, error) {
+	var total, closed int64
+
+	if err := r.db.Table("Issue").Where("project_id = ?", projectID).Count(&total).Error; err != nil {
+		logrus.Errorf("Repository: stats error (total) for project %d: %v", projectID, err)
+		return nil, err
+	}
+
+	if err := r.db.Table("Issue").Where("project_id = ? AND closed_time IS NOT NULL", projectID).Count(&closed).Error; err != nil {
+		logrus.Errorf("Repository: stats error (closed) for project %d: %v", projectID, err)
+		return nil, err
+	}
+
+	return map[string]interface{}{
+		"total_tasks":  total,
+		"closed_tasks": closed,
+		"open_tasks":   total - closed,
+	}, nil
+}
+
 func (r *ProjectRepository) UpdateProject(project *models.Project) error {
 	err := r.db.Model(project).Updates(project).Error
 	if err != nil {
