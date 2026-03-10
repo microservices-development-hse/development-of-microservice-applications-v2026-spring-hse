@@ -6,7 +6,23 @@ ProgramSettings:
 
 DBSettings:
   dbUser: "postgres"
-  dbPassword: "pgpwd"
+  dbPassword: "yourpassword"
   dbHost: "localhost"
   dbPort: 5432
-  dbName: "jira_analyzer"
+  dbName: "postgres"
+
+CorsSettings:
+  allowedOrigins: 
+    - "http://localhost:4200"
+    - "http://localhost:8000"
+  allowedMethods:
+    - "GET"
+    - "POST"
+    - "PUT"
+    - "DELETE"
+    - "OPTIONS"
+  allowedHeaders:
+    - "Accept"
+    - "Authorization"
+    - "Content-Type"
+    - "X-CSRF-Token"

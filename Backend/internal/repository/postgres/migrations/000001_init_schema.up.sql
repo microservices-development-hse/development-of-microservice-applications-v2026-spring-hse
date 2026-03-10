@@ -1,4 +1,3 @@
--- Базовые таблицы
 CREATE TABLE "Author" (
     "id" SERIAL PRIMARY KEY,
     "name" TEXT NOT NULL

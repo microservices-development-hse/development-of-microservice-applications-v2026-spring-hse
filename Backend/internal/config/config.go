@@ -15,6 +15,13 @@ var errParseConfig = errors.New("failed to parse config file")
 type Config struct {
 	DBSettings      DBConfig      `yaml:"DBSettings" validate:"required"`
 	ProgramSettings ProgramConfig `yaml:"ProgramSettings" validate:"required"`
+	CorsSettings    CorsSettings  `yaml:"CorsSettings"`
+}
+
+type CorsSettings struct {
+	AllowedOrigins []string `yaml:"allowedOrigins"`
+	AllowedMethods []string `yaml:"allowedMethods"`
+	AllowedHeaders []string `yaml:"allowedHeaders"`
 }
 
 type DBConfig struct {

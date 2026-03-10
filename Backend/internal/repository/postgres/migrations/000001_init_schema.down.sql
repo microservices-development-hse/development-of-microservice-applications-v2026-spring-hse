@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS "AnalyticsSnapshots";
+DROP TABLE IF EXISTS "AnalyticsSnapshot";
 DROP TABLE IF EXISTS "StatusChanges";
 DROP TABLE IF EXISTS "Issue";
 DROP TABLE IF EXISTS "Project";

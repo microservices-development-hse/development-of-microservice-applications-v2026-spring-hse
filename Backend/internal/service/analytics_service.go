@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"sync"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 
 type AnalyticsService interface {
 	RunFullAnalysis(projectID int)
+	GetLatestSnapshot(ctx context.Context, projectID int, reportType string) (*models.AnalyticsSnapshot, error)
 }
 
 type analyticsService struct {
@@ -127,4 +129,18 @@ func (s *analyticsService) saveSnapshot(ctx context.Context, projectID int, t st
 	if err := s.repo.SaveSnapshot(ctx, snapshot); err != nil {
 		logrus.Errorf("Service: failed to save snapshot %s: %v", t, err)
 	}
+}
+
+func (s *analyticsService) GetLatestSnapshot(ctx context.Context, projectID int, reportType string) (*models.AnalyticsSnapshot, error) {
+	snapshot, err := s.repo.GetLatestSnapshot(ctx, projectID, reportType)
+	if err != nil {
+		logrus.Errorf("Service: failed to get latest snapshot for project %d (type %s): %v", projectID, reportType, err)
+		return nil, fmt.Errorf("service error: %w", err)
+	}
+
+	if snapshot == nil {
+		return nil, fmt.Errorf("snapshot not found for project %d and type %s", projectID, reportType)
+	}
+
+	return snapshot, nil
 }

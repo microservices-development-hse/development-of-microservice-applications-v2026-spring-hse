@@ -60,14 +60,18 @@ func (r *AnalyticsRepository) GetTaskPriorityDistribution(ctx context.Context, p
 func (r *AnalyticsRepository) GetProjectComplexity(ctx context.Context, projectID int) ([]models.TaskComplexity, error) {
 	var results []models.TaskComplexity
 
-	err := r.db.WithContext(ctx).Table("Issue").
-		Select("key as issue_key, "+
-			"EXTRACT(EPOCH FROM (closed_time - created_time))/3600 as lead_time, "+
-			"COUNT(StatusChanges.issue_id) as move_count").
-		Joins("LEFT JOIN StatusChanges ON StatusChanges.issue_id = Issue.id").
-		Where("Issue.project_id = ? AND Issue.closed_time IS NOT NULL", projectID).
-		Group("Issue.id, Issue.key, Issue.closed_time, Issue.created_time").
-		Scan(&results).Error
+	query := `
+		SELECT 
+			i.key as issue_key,
+			EXTRACT(EPOCH FROM (i.closed_time - i.created_time))/3600 as lead_time,
+			COUNT(sc.issue_id) as move_count
+		FROM "Issue" i
+		LEFT JOIN "StatusChanges" sc ON sc.issue_id = i.id
+		WHERE i.project_id = ? AND i.closed_time IS NOT NULL
+		GROUP BY i.id, i.key, i.closed_time, i.created_time
+	`
+
+	err := r.db.WithContext(ctx).Raw(query, projectID).Scan(&results).Error
 
 	return results, err
 }
@@ -93,11 +97,14 @@ func (r *AnalyticsRepository) GetOpenTasksBottlenecks(ctx context.Context, proje
 func (r *AnalyticsRepository) CalculateTimeInState(ctx context.Context, projectID int) (map[string]float64, error) {
 	var changes []models.StatusChanges
 
-	err := r.db.Table("StatusChanges").
-		Joins("JOIN Issue ON Issue.id = StatusChanges.issue_id").
-		Where("Issue.project_id = ?", projectID).
-		Order("issue_id, change_time ASC").
-		Scan(&changes).Error
+	query := `
+		SELECT sc.* FROM "StatusChanges" sc
+		JOIN "Issue" i ON i.id = sc.issue_id
+		WHERE i.project_id = ?
+		ORDER BY sc.issue_id, sc.change_time ASC
+	`
+
+	err := r.db.WithContext(ctx).Raw(query, projectID).Scan(&changes).Error
 	if err != nil {
 		return nil, err
 	}

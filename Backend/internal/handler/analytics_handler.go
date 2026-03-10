@@ -6,25 +6,22 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/microservices-development-hse/backend/internal/models"
 	"github.com/microservices-development-hse/backend/internal/service"
 	"github.com/sirupsen/logrus"
 )
 
 type AnalyticsHandler struct {
 	service service.AnalyticsService
-	repo    models.AnalyticsRepository
 }
 
-func NewAnalyticsHandler(s service.AnalyticsService, r models.AnalyticsRepository) *AnalyticsHandler {
+func NewAnalyticsHandler(s service.AnalyticsService) *AnalyticsHandler {
 	return &AnalyticsHandler{
 		service: s,
-		repo:    r,
 	}
 }
 
 func (h *AnalyticsHandler) GetAnalytics(w http.ResponseWriter, r *http.Request) {
-	projectID, err := strconv.Atoi(chi.URLParam(r, "projectID"))
+	projectID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		http.Error(w, "Invalid project ID", http.StatusBadRequest)
 		return
@@ -49,7 +46,7 @@ func (h *AnalyticsHandler) GetAnalytics(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	snapshot, err := h.repo.GetLatestSnapshot(r.Context(), projectID, reportType)
+	snapshot, err := h.service.GetLatestSnapshot(r.Context(), projectID, reportType)
 	if err != nil {
 		http.Error(w, "Analytics not found", http.StatusNotFound)
 		return
@@ -63,7 +60,7 @@ func (h *AnalyticsHandler) GetAnalytics(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *AnalyticsHandler) Recalculate(w http.ResponseWriter, r *http.Request) {
-	projectID, err := strconv.Atoi(chi.URLParam(r, "projectID"))
+	projectID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		http.Error(w, "Invalid project ID", http.StatusBadRequest)
 		return
