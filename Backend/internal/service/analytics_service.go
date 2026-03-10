@@ -135,7 +135,7 @@ func (s *analyticsService) GetLatestSnapshot(ctx context.Context, projectID int,
 	snapshot, err := s.repo.GetLatestSnapshot(ctx, projectID, reportType)
 	if err != nil {
 		logrus.Errorf("Service: failed to get latest snapshot for project %d (type %s): %v", projectID, reportType, err)
-		return nil, err
+		return nil, fmt.Errorf("service error: %w", err)
 	}
 
 	if snapshot == nil {

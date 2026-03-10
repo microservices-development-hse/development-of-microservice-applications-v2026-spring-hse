@@ -31,7 +31,7 @@ func (s *projectService) CreateProject(key, title string) (*models.Project, erro
 
 	if err := s.repo.CreateProject(project); err != nil {
 		logrus.Errorf("Service: failed to create project: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("repository error: %w", err)
 	}
 
 	return project, nil
@@ -42,6 +42,7 @@ func (s *projectService) UpdateProject(id int, key, title string) (*models.Proje
 	if err != nil {
 		return nil, fmt.Errorf("failed to find project for update: %w", err)
 	}
+
 	if project == nil {
 		return nil, fmt.Errorf("project with ID %d not found", id)
 	}
@@ -51,7 +52,7 @@ func (s *projectService) UpdateProject(id int, key, title string) (*models.Proje
 
 	if err := s.repo.UpdateProject(project); err != nil {
 		logrus.Errorf("Service: failed to update project %d: %v", id, err)
-		return nil, err
+		return nil, fmt.Errorf("repository error: %w", err)
 	}
 
 	return project, nil
@@ -60,7 +61,7 @@ func (s *projectService) UpdateProject(id int, key, title string) (*models.Proje
 func (s *projectService) DeleteProject(id int) error {
 	if err := s.repo.DeleteProject(id); err != nil {
 		logrus.Errorf("Service: failed to delete project %d: %v", id, err)
-		return err
+		return fmt.Errorf("repository error: %w", err)
 	}
 
 	return nil
@@ -70,7 +71,7 @@ func (s *projectService) GetProjectsList() ([]models.Project, error) {
 	projects, err := s.repo.GetAllProjects()
 	if err != nil {
 		logrus.Errorf("Service: could not retrieve projects list: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("repository error: %w", err)
 	}
 
 	return projects, nil

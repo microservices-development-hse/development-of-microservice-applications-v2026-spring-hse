@@ -34,6 +34,7 @@ func (h *ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logrus.Errorf("Handler: failed to create project: %v", err)
 		h.sendError(w, http.StatusInternalServerError, "Could not create project")
+
 		return
 	}
 
@@ -42,6 +43,7 @@ func (h *ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 
 func (h *ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
+
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		h.sendError(w, http.StatusBadRequest, "Invalid project ID")
@@ -58,6 +60,7 @@ func (h *ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logrus.Errorf("Handler: failed to update project %d: %v", id, err)
 		h.sendError(w, http.StatusInternalServerError, "Could not update project")
+
 		return
 	}
 
@@ -66,6 +69,7 @@ func (h *ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 
 func (h *ProjectHandler) DeleteProject(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
+
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		h.sendError(w, http.StatusBadRequest, "Invalid project ID")
@@ -75,6 +79,7 @@ func (h *ProjectHandler) DeleteProject(w http.ResponseWriter, r *http.Request) {
 	if err := h.service.DeleteProject(id); err != nil {
 		logrus.Errorf("Handler: failed to delete project %d: %v", id, err)
 		h.sendError(w, http.StatusInternalServerError, "Could not delete project")
+
 		return
 	}
 
@@ -86,6 +91,7 @@ func (h *ProjectHandler) GetAllProjects(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		logrus.Errorf("Handler: failed to get projects list: %v", err)
 		h.sendError(w, http.StatusInternalServerError, "Could not fetch projects")
+
 		return
 	}
 
@@ -94,6 +100,7 @@ func (h *ProjectHandler) GetAllProjects(w http.ResponseWriter, r *http.Request) 
 
 func (h *ProjectHandler) GetProjectByID(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
+
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		h.sendError(w, http.StatusBadRequest, "Invalid project ID")
@@ -104,6 +111,7 @@ func (h *ProjectHandler) GetProjectByID(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		logrus.Errorf("Handler: failed to get project %d: %v", id, err)
 		h.sendError(w, http.StatusNotFound, "Project not found")
+
 		return
 	}
 
@@ -118,6 +126,7 @@ func (h *ProjectHandler) GetProjectByID(w http.ResponseWriter, r *http.Request) 
 func (h *ProjectHandler) sendJSON(w http.ResponseWriter, status int, payload interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
+
 	if err := json.NewEncoder(w).Encode(payload); err != nil {
 		logrus.Errorf("Handler: failed to encode JSON response: %v", err)
 	}

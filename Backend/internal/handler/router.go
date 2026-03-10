@@ -25,7 +25,6 @@ func NewRouter(cfg *config.Config, projectHandler *ProjectHandler, analyticsHand
 	r.Use(c.Handler)
 
 	r.Route("/api/v1", func(r chi.Router) {
-
 		r.Route("/projects", func(r chi.Router) {
 			r.Get("/", projectHandler.GetAllProjects)
 			r.Post("/", projectHandler.CreateProject)

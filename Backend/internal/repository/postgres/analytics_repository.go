@@ -72,6 +72,7 @@ func (r *AnalyticsRepository) GetProjectComplexity(ctx context.Context, projectI
 	`
 
 	err := r.db.WithContext(ctx).Raw(query, projectID).Scan(&results).Error
+
 	return results, err
 }
 
