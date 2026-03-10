@@ -1,6 +1,6 @@
 package jira
 
-import "time"
+// import "time"
 
 type IssueSearchResponse struct {
 	StartAt    int     `json:"startAt"`
@@ -18,10 +18,10 @@ type Issue struct {
 }
 
 type Fields struct {
-	Summary string    `json:"summary"`
-	Status  Status    `json:"status"`
-	Created time.Time `json:"created"`
-	Updated time.Time `json:"updated"`
+	Summary string `json:"summary"`
+	Status  Status `json:"status"`
+	Created string `json:"created"` // time.Time
+	Updated string `json:"updated"` //
 }
 
 type Status struct {
@@ -35,10 +35,10 @@ type Changelog struct {
 }
 
 type History struct {
-	ID      string    `json:"id"`
-	Author  Author    `json:"author"`
-	Created time.Time `json:"created"`
-	Items   []Item    `json:"items"`
+	ID      string `json:"id"`
+	Author  Author `json:"author"`
+	Created string `json:"created"` //
+	Items   []Item `json:"items"`
 }
 
 type Author struct {
