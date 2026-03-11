@@ -40,8 +40,8 @@ func TransformIssue(ji jiramodels.Issue, projectID int) (dbmodels.Issue, []dbmod
 		Key:       ji.Key,
 		Summary:   ji.Fields.Summary,
 		Status:    ji.Fields.Status.Name,
-		Created:   ji.Fields.Created,
-		Updated:   ji.Fields.Updated,
+		Created:   ji.Fields.Created.Time,
+		Updated:   ji.Fields.Updated.Time,
 		Changelog: changelogJSON,
 	}
 

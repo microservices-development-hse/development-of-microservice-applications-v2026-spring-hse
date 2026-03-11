@@ -1,6 +1,35 @@
 package jira
 
-import "time"
+import (
+	"strings"
+	"time"
+)
+
+type JTime struct {
+	time.Time
+}
+
+func (jt *JTime) UnmarshalJSON(b []byte) error {
+	s := strings.Trim(string(b), `"`)
+	if s == "null" || s == "" {
+		return nil
+	}
+
+	formats := []string{
+		"2006-01-02T15:04:05.000-0700",
+		"2006-01-02T15:04:05.000Z",
+		time.RFC3339,
+	}
+
+	for _, f := range formats {
+		if t, err := time.Parse(f, s); err == nil {
+			jt.Time = t
+			return nil
+		}
+	}
+
+	return nil
+}
 
 type IssueSearchResponse struct {
 	StartAt    int     `json:"startAt"`
@@ -18,10 +47,10 @@ type Issue struct {
 }
 
 type Fields struct {
-	Summary string    `json:"summary"`
-	Status  Status    `json:"status"`
-	Created time.Time `json:"created"`
-	Updated time.Time `json:"updated"`
+	Summary string `json:"summary"`
+	Status  Status `json:"status"`
+	Created JTime  `json:"created"`
+	Updated JTime  `json:"updated"`
 }
 
 type Status struct {
@@ -35,10 +64,10 @@ type Changelog struct {
 }
 
 type History struct {
-	ID      string    `json:"id"`
-	Author  Author    `json:"author"`
-	Created time.Time `json:"created"`
-	Items   []Item    `json:"items"`
+	ID      string `json:"id"`
+	Author  Author `json:"author"`
+	Created JTime  `json:"created"`
+	Items   []Item `json:"items"`
 }
 
 type Author struct {
