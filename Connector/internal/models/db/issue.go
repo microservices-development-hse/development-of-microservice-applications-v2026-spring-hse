@@ -1,6 +1,6 @@
 package db
 
-// import "time"
+import "time"
 
 type Issue struct {
 	ID        int         `db:"id"`
@@ -8,7 +8,7 @@ type Issue struct {
 	Key       string      `db:"key"`
 	Summary   string      `db:"summary"`
 	Status    string      `db:"status"`
-	Created   string      `db:"created"` //
-	Updated   string      `db:"updated"` //
+	Created   time.Time   `db:"created"`
+	Updated   time.Time   `db:"updated"`
 	Changelog interface{} `db:"changelog"`
 }
