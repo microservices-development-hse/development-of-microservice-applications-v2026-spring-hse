@@ -2,8 +2,6 @@ module github.com/microservices-development-hse/backend
 
 go 1.25.6
 
-replace github.com/microservices-development-hse/database/postgres => ../Database/postgres
-
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/go-chi/chi/v5 v5.2.5
