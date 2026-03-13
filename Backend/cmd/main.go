@@ -7,8 +7,8 @@ import (
 	"github.com/microservices-development-hse/backend/internal/config"
 	"github.com/microservices-development-hse/backend/internal/handler"
 	"github.com/microservices-development-hse/backend/internal/logger"
-	"github.com/microservices-development-hse/backend/internal/repository/postgres"
 	"github.com/microservices-development-hse/backend/internal/service"
+	"github.com/microservices-development-hse/database/postgres"
 	"github.com/sirupsen/logrus"
 )
 
@@ -40,14 +40,18 @@ func main() {
 
 	projectRepo := postgres.NewProjectRepository(db)
 	analyticsRepo := postgres.NewAnalyticsRepository(db)
+	issueRepo := postgres.NewIssueRepository(db)
+	authorRepo := postgres.NewAuthorRepository(db)
 
 	projectService := service.NewProjectService(projectRepo)
 	analyticsService := service.NewAnalyticsService(analyticsRepo)
+	issueService := service.NewIssueService(issueRepo, authorRepo)
 
 	projectHandler := handler.NewProjectHandler(projectService)
 	analyticsHandler := handler.NewAnalyticsHandler(analyticsService)
+	issueHandler := handler.NewIssueHandler(issueService)
 
-	r := handler.NewRouter(cfg, projectHandler, analyticsHandler)
+	r := handler.NewRouter(cfg, projectHandler, analyticsHandler, issueHandler)
 
 	addr := fmt.Sprintf("%s:%d", cfg.ProgramSettings.BindAddress, cfg.ProgramSettings.BindPort)
 	logrus.Infof("Server is starting at %s", addr)

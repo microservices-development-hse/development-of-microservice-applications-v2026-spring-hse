@@ -7,7 +7,7 @@ import (
 	"github.com/rs/cors"
 )
 
-func NewRouter(cfg *config.Config, projectHandler *ProjectHandler, analyticsHandler *AnalyticsHandler) *chi.Mux {
+func NewRouter(cfg *config.Config, projectHandler *ProjectHandler, analyticsHandler *AnalyticsHandler, issueHandler *IssueHandler) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -25,6 +25,7 @@ func NewRouter(cfg *config.Config, projectHandler *ProjectHandler, analyticsHand
 	r.Use(c.Handler)
 
 	r.Route("/api/v1", func(r chi.Router) {
+		// Проекты
 		r.Route("/projects", func(r chi.Router) {
 			r.Get("/", projectHandler.GetAllProjects)
 			r.Post("/", projectHandler.CreateProject)
@@ -38,7 +39,17 @@ func NewRouter(cfg *config.Config, projectHandler *ProjectHandler, analyticsHand
 					r.Get("/", analyticsHandler.GetAnalytics)
 					r.Post("/recalculate", analyticsHandler.Recalculate)
 				})
+
+				r.Get("/issues", issueHandler.GetProjectIssues)
 			})
+		})
+
+		r.Route("/issues", func(r chi.Router) {
+			r.Get("/{key}", issueHandler.GetIssueByKey)
+		})
+
+		r.Route("/sync", func(r chi.Router) {
+			r.Post("/issue", issueHandler.SyncIssue)
 		})
 	})
 

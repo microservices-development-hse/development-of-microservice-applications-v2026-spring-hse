@@ -42,7 +42,7 @@ func TestGetLatestSnapshot(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"id", "project_id", "type", "creation_time", "data"}).
 			AddRow(1, projectID, reportType, time.Now(), []byte(expectedData))
 
-		query := `SELECT * FROM "AnalyticsSnapshot" WHERE project_id = $1 AND type = $2 ORDER BY creation_time DESC,"AnalyticsSnapshot"."id" LIMIT $3`
+		query := `SELECT * FROM analytics_snapshots WHERE project_id = $1 AND type = $2 ORDER BY creation_time DESC,analytics_snapshots."id" LIMIT $3`
 
 		mock.ExpectQuery(regexp.QuoteMeta(query)).
 			WithArgs(projectID, reportType, 1).
@@ -88,7 +88,7 @@ func TestSaveSnapshot(t *testing.T) {
 
 		mock.ExpectBegin()
 
-		mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "AnalyticsSnapshot" ("project_id","type","data") VALUES ($1,$2,$3) RETURNING "creation_time","id"`)).
+		mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO analytics_snapshots ("project_id","type","data") VALUES ($1,$2,$3) RETURNING "creation_time","id"`)).
 			WithArgs(snapshot.ProjectID, snapshot.Type, snapshot.Data).
 			WillReturnRows(sqlmock.NewRows([]string{"creation_time", "id"}).
 				AddRow(time.Now(), 1))

@@ -73,7 +73,7 @@ func InitLogger() error {
 	})
 
 	logrus.AddHook(&CustomHook{
-		File:      os.Stdout,
+		File:      os.Stderr,
 		logLevels: errorLevels,
 	})
 

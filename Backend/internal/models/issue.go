@@ -6,6 +6,7 @@ import (
 
 type Issue struct {
 	ID          int        `json:"id" db:"id"`
+	ExternalID  string     `json:"external_id" db:"external_id"`
 	ProjectID   int        `json:"project_id" db:"project_id"`
 	AuthorID    int        `json:"author_id" db:"author_id"`
 	AssigneeID  int        `json:"assignee_id" db:"assignee_id"`
@@ -24,13 +25,12 @@ type Issue struct {
 type IssueRepository interface {
 	CreateIssue(issue *Issue) error
 	UpdateIssue(issue *Issue) error
-	//GetIssueByProjectID(projectID int) ([]Issue, error)
+	GetIssuesByProjectID(projectID int, limit, offset int) ([]Issue, int, error)
+	GetIssueByExternalID(externalID string) (*Issue, error)
 	GetIssueByKey(key string) (*Issue, error)
-	//UpdateStatus(id int, newStatus string) error
-	//GetStatsByProject(projectID int) (map[string]int, error)
-	//DeleteByProject(projectID int) error
+	DeleteIssue(id int) error
 }
 
 func (Issue) TableName() string {
-	return "Issue"
+	return "\"Issue\""
 }
