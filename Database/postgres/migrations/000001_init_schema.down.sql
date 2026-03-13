@@ -1,0 +1,5 @@
+DROP TABLE IF EXISTS "AnalyticsSnapshot";
+DROP TABLE IF EXISTS "StatusChanges";
+DROP TABLE IF EXISTS "Issue";
+DROP TABLE IF EXISTS "Project";
+DROP TABLE IF EXISTS "Author";
