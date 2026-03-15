@@ -1,3 +1,18 @@
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT FROM pg_catalog.pg_user WHERE usename = 'pguser') THEN
+    CREATE USER pguser WITH PASSWORD 'pgpwd';
+  END IF;
+END $$;
+
+GRANT ALL PRIVILEGES ON DATABASE testdb TO pguser;
+ALTER DATABASE testdb OWNER TO pguser;
+
+\c testdb
+
+GRANT ALL ON SCHEMA public TO pguser;
+
+
 CREATE TABLE authors (
     id SERIAL PRIMARY KEY,
     external_id VARCHAR(255) UNIQUE NOT NULL,
@@ -47,3 +62,7 @@ CREATE TABLE analytics_snapshots (
 
 CREATE INDEX "idx_analytics_snapshot_project_id" ON analytics_snapshots ("project_id");
 CREATE INDEX "idx_analytics_snapshot_type" ON analytics_snapshots ("type");
+
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO pguser;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO pguser;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO pguser;

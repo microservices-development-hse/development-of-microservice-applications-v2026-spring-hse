@@ -1,3 +1,4 @@
+\c testdb
 DROP INDEX IF EXISTS idx_analytics_snapshot_type;
 DROP INDEX IF EXISTS idx_analytics_snapshot_project_id;
 
@@ -8,3 +9,8 @@ DROP TABLE IF EXISTS projects;
 DROP TABLE IF EXISTS authors;
 DROP USER IF EXISTS pguser;
 DROP USER IF EXISTS replicator;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE ALL ON TABLES FROM pguser;
+REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public FROM pguser;
+REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM pguser;
+REVOKE ALL ON SCHEMA public FROM pguser;
