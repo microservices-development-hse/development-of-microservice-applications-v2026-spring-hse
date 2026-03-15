@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/microservices-development-hse/backend/internal/models"
@@ -52,8 +53,10 @@ func (r *IssueRepository) GetIssueByKey(key string) (*models.Issue, error) {
 }
 
 func (r *IssueRepository) GetIssuesByProjectID(projectID int, limit, offset int) ([]models.Issue, int, error) {
-	var issues []models.Issue
-	var totalCount int64
+	var (
+		issues     []models.Issue
+		totalCount int64
+	)
 
 	countQuery := `SELECT count(*) FROM issues WHERE project_id = ?`
 	if err := r.db.Raw(countQuery, projectID).Scan(&totalCount).Error; err != nil {
@@ -70,9 +73,10 @@ func (r *IssueRepository) GetIssuesByProjectID(projectID int, limit, offset int)
 
 func (r *IssueRepository) GetIssueByExternalID(externalID string) (*models.Issue, error) {
 	var issue models.Issue
+
 	err := r.db.Where("external_id = ?", externalID).First(&issue).Error
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 

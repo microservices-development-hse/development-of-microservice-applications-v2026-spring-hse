@@ -105,12 +105,12 @@ func (r *AnalyticsRepository) CalculateTimeInState(ctx context.Context, projectI
 		Where("i.project_id = ?", projectID).
 		Order("sc.issue_id, sc.change_time ASC").
 		Scan(&changes).Error
-
 	if err != nil {
 		return nil, err
 	}
 
 	stateDurations := make(map[string]float64)
+
 	for i := 1; i < len(changes); i++ {
 		if changes[i].IssueID == changes[i-1].IssueID {
 			duration := changes[i].ChangeTime.Sub(changes[i-1].ChangeTime).Hours()

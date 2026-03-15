@@ -89,6 +89,7 @@ func (h *IssueHandler) SyncIssue(w http.ResponseWriter, r *http.Request) {
 	if err := h.service.SyncIssue(&payload.Issue, &payload.Author); err != nil {
 		logrus.Errorf("Handler: sync failed: %v", err)
 		h.sendError(w, http.StatusInternalServerError, "Sync failed")
+
 		return
 	}
 
@@ -98,7 +99,9 @@ func (h *IssueHandler) SyncIssue(w http.ResponseWriter, r *http.Request) {
 func (h *IssueHandler) sendJSON(w http.ResponseWriter, status int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(data)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		logrus.Errorf("failed to encode response: %v", err)
+	}
 }
 
 func (h *IssueHandler) sendError(w http.ResponseWriter, status int, message string) {

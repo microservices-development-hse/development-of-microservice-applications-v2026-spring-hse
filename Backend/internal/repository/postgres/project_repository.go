@@ -32,8 +32,10 @@ func (r *ProjectRepository) CreateProject(project *models.Project) error {
 }
 
 func (r *ProjectRepository) GetAllProjects(limit, offset int) ([]models.Project, int, error) {
-	var projects []models.Project
-	var totalCount int64
+	var (
+		projects   []models.Project
+		totalCount int64
+	)
 
 	if err := r.db.Model(&models.Project{}).Count(&totalCount).Error; err != nil {
 		return nil, 0, fmt.Errorf("failed to count projects: %w", err)

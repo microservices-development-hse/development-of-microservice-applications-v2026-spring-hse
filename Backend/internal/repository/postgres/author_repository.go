@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/microservices-development-hse/backend/internal/models"
@@ -18,9 +19,10 @@ func NewAuthorRepository(db *gorm.DB) *AuthorRepository {
 
 func (r *AuthorRepository) GetAuthorByExternalID(externalID string) (*models.Author, error) {
 	var author models.Author
+
 	err := r.db.Where("external_id = ?", externalID).First(&author).Error
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 
@@ -58,11 +60,13 @@ func (r *AuthorRepository) UpdateAuthor(author *models.Author) error {
 
 func (r *AuthorRepository) GetAuthorByName(name string) (*models.Author, error) {
 	var author models.Author
+
 	err := r.db.Where("name = ?", name).First(&author).Error
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
+
 		logrus.Errorf("Failed to find author by name %s: %v", name, err)
 
 		return nil, fmt.Errorf("repository error: %w", err)
