@@ -5,11 +5,11 @@ ProgramSettings:
   bindPort: 8000
 
 DBSettings:
-  dbUser: "postgres"
-  dbPassword: "yourpassword"
+  dbUser: "pguser"
+  dbPassword: "pgpwd"
   dbHost: "localhost"
   dbPort: 5432
-  dbName: "postgres"
+  dbName: "testdb"
 
 CorsSettings:
   allowedOrigins: 
