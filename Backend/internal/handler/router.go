@@ -7,7 +7,7 @@ import (
 	"github.com/rs/cors"
 )
 
-func NewRouter(cfg *config.Config, projectHandler *ProjectHandler, analyticsHandler *AnalyticsHandler, issueHandler *IssueHandler) *chi.Mux {
+func NewRouter(cfg *config.Config, h *Handlers) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -25,31 +25,30 @@ func NewRouter(cfg *config.Config, projectHandler *ProjectHandler, analyticsHand
 	r.Use(c.Handler)
 
 	r.Route("/api/v1", func(r chi.Router) {
-		// Проекты
 		r.Route("/projects", func(r chi.Router) {
-			r.Get("/", projectHandler.GetAllProjects)
-			r.Post("/", projectHandler.CreateProject)
+			r.Get("/", h.Project.GetAllProjects)
+			r.Post("/", h.Project.CreateProject)
 
 			r.Route("/{id}", func(r chi.Router) {
-				r.Get("/", projectHandler.GetProjectByID)
-				r.Put("/", projectHandler.UpdateProject)
-				r.Delete("/", projectHandler.DeleteProject)
+				r.Get("/", h.Project.GetProjectByID)
+				r.Put("/", h.Project.UpdateProject)
+				r.Delete("/", h.Project.DeleteProject)
 
 				r.Route("/analytics", func(r chi.Router) {
-					r.Get("/", analyticsHandler.GetAnalytics)
-					r.Post("/recalculate", analyticsHandler.Recalculate)
+					r.Get("/", h.Analytics.GetAnalytics)
+					r.Post("/recalculate", h.Analytics.Recalculate)
 				})
 
-				r.Get("/issues", issueHandler.GetProjectIssues)
+				r.Get("/issues", h.Issue.GetProjectIssues)
 			})
 		})
 
 		r.Route("/issues", func(r chi.Router) {
-			r.Get("/{key}", issueHandler.GetIssueByKey)
+			r.Get("/{key}", h.Issue.GetIssueByKey)
 		})
 
 		r.Route("/sync", func(r chi.Router) {
-			r.Post("/issue", issueHandler.SyncIssue)
+			r.Post("/issue", h.Issue.SyncIssue)
 		})
 	})
 

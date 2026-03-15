@@ -7,8 +7,8 @@ import (
 	"github.com/microservices-development-hse/backend/internal/config"
 	"github.com/microservices-development-hse/backend/internal/handler"
 	"github.com/microservices-development-hse/backend/internal/logger"
+	"github.com/microservices-development-hse/backend/internal/repository/postgres"
 	"github.com/microservices-development-hse/backend/internal/service"
-	"github.com/microservices-development-hse/database/postgres"
 	"github.com/sirupsen/logrus"
 )
 
@@ -23,35 +23,15 @@ func main() {
 		logrus.Fatalf("Config error: %v", err)
 	}
 
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable",
-		cfg.DBSettings.DBHost,
-		cfg.DBSettings.DBUser,
-		cfg.DBSettings.DBPassword,
-		cfg.DBSettings.DBName,
-		cfg.DBSettings.DBPort,
-	)
-
-	db, closeDB, err := postgres.InitDB(dsn)
+	repos, err := postgres.InitializeRepositories(cfg)
 	if err != nil {
-		logrus.Fatalf("Could not initialize database: %v", err)
+		logrus.Fatal(err)
 	}
 
-	defer closeDB()
+	services := service.InitializeServices(repos)
+	handlers := handler.InitializeHandlers(services)
 
-	projectRepo := postgres.NewProjectRepository(db)
-	analyticsRepo := postgres.NewAnalyticsRepository(db)
-	issueRepo := postgres.NewIssueRepository(db)
-	authorRepo := postgres.NewAuthorRepository(db)
-
-	projectService := service.NewProjectService(projectRepo)
-	analyticsService := service.NewAnalyticsService(analyticsRepo)
-	issueService := service.NewIssueService(issueRepo, authorRepo)
-
-	projectHandler := handler.NewProjectHandler(projectService)
-	analyticsHandler := handler.NewAnalyticsHandler(analyticsService)
-	issueHandler := handler.NewIssueHandler(issueService)
-
-	r := handler.NewRouter(cfg, projectHandler, analyticsHandler, issueHandler)
+	r := handler.NewRouter(cfg, handlers)
 
 	addr := fmt.Sprintf("%s:%d", cfg.ProgramSettings.BindAddress, cfg.ProgramSettings.BindPort)
 	logrus.Infof("Server is starting at %s", addr)
