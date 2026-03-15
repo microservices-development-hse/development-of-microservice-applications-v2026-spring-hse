@@ -1,17 +1,19 @@
 package models
 
 type Author struct {
-	ID   int    `json:"id" db:"id"`
-	Name string `json:"name" db:"name"`
+	ID         int    `json:"id" gorm:"primaryKey"`
+	ExternalID string `json:"external_id" gorm:"uniqueIndex"`
+	Name       string `json:"name" db:"name"`
+	Email      string `json:"email" db:"email"`
 }
 
 type AuthorRepository interface {
+	GetAuthorByExternalID(externalID string) (*Author, error)
+	CreateAuthor(author *Author) error
+	UpdateAuthor(author *Author) error
 	GetAuthorByName(name string) (*Author, error)
-	//Save(author *Author) error
-	//GetByID(id int) (*Author, error)
-	//GetAll() ([]Author, error)
 }
 
 func (Author) TableName() string {
-	return "Author"
+	return "\"Author\""
 }

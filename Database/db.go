@@ -38,7 +38,7 @@ func InitDB(dsn string) (*gorm.DB, func(), error) {
 	return db, closeFunc, nil
 }
 
-//go:embed migrations/*.sql
+//go:embed init_scripts/*.sql
 var migrationsFS embed.FS
 
 func runMigrations(db *sql.DB) error {

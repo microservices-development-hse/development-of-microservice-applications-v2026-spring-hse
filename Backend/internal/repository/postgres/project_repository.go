@@ -32,17 +32,16 @@ func (r *ProjectRepository) CreateProject(project *models.Project) error {
 }
 
 func (r *ProjectRepository) GetAllProjects(limit, offset int) ([]models.Project, int, error) {
-	var projects []models.Project
+	var (
+		projects   []models.Project
+		totalCount int64
+	)
 
-	var totalCount int64
-
-	countQuery := `SELECT count(*) FROM "Project"`
-	if err := r.db.Raw(countQuery).Scan(&totalCount).Error; err != nil {
+	if err := r.db.Model(&models.Project{}).Count(&totalCount).Error; err != nil {
 		return nil, 0, fmt.Errorf("failed to count projects: %w", err)
 	}
 
-	dataQuery := `SELECT * FROM "Project" LIMIT ? OFFSET ?`
-	if err := r.db.Raw(dataQuery, limit, offset).Scan(&projects).Error; err != nil {
+	if err := r.db.Limit(limit).Offset(offset).Find(&projects).Error; err != nil {
 		return nil, 0, fmt.Errorf("failed to fetch projects page: %w", err)
 	}
 
@@ -88,12 +87,12 @@ func (r *ProjectRepository) GetProjectByKey(key string) (*models.Project, error)
 func (r *ProjectRepository) GetBasicStats(projectID int) (map[string]interface{}, error) {
 	var total, closed int64
 
-	if err := r.db.Table("Issue").Where("project_id = ?", projectID).Count(&total).Error; err != nil {
+	if err := r.db.Table("issues").Where("project_id = ?", projectID).Count(&total).Error; err != nil {
 		logrus.Errorf("Repository: stats error (total) for project %d: %v", projectID, err)
 		return nil, err
 	}
 
-	if err := r.db.Table("Issue").Where("project_id = ? AND closed_time IS NOT NULL", projectID).Count(&closed).Error; err != nil {
+	if err := r.db.Table("issues").Where("project_id = ? AND closed_time IS NOT NULL", projectID).Count(&closed).Error; err != nil {
 		logrus.Errorf("Repository: stats error (closed) for project %d: %v", projectID, err)
 		return nil, err
 	}
