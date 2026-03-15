@@ -99,6 +99,7 @@ func (h *IssueHandler) SyncIssue(w http.ResponseWriter, r *http.Request) {
 func (h *IssueHandler) sendJSON(w http.ResponseWriter, status int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
+
 	if err := json.NewEncoder(w).Encode(data); err != nil {
 		logrus.Errorf("failed to encode response: %v", err)
 	}
