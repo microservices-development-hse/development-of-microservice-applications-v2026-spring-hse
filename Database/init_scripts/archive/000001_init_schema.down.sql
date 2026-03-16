@@ -1,4 +1,3 @@
-\c testdb
 DROP INDEX IF EXISTS idx_analytics_snapshot_type;
 DROP INDEX IF EXISTS idx_analytics_snapshot_project_id;
 

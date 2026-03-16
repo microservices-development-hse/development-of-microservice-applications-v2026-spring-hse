@@ -25,9 +25,9 @@ export class ComparePageComponent implements OnInit {
 
   ngOnInit(): void {
     this.myProjectService.getAll().subscribe(projects => {
-      this.noProjects = projects.data.length == 0;
+      this.noProjects = projects.projects.length == 0;
       console.log(projects)
-      this.projects = projects.data
+      this.projects = projects.projects
       this.inited = true
     },
       error => {
