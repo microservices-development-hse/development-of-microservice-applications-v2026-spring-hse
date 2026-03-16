@@ -23,7 +23,7 @@ export class ProjectPageComponent implements OnInit {
     this.loading = true
     this.projectService.getAll(this.start_page, this.searchName).subscribe({
         next: projects => {
-            this.projects = projects.data
+            this.projects = projects.projects
             this.loading = false
             this.pageInfo = projects.pageInfo
         },
@@ -48,7 +48,7 @@ export class ProjectPageComponent implements OnInit {
   gty(page: any){
     this.projectService.getAll(page, this.searchName).subscribe({
         next: projects => {
-            this.projects = projects.data
+            this.projects = projects.projects
             this.pageInfo = projects.pageInfo
             this.loading = false
         },

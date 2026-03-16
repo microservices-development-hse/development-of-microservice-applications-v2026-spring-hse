@@ -4,7 +4,7 @@ import { IProj } from "./proj.model";
 
 export interface IRequest {
   _links?: Links;
-  data: IProj[];
+  projects: IProj[];
   message?: string;
   name?: string;
   pageInfo: PageInfo;

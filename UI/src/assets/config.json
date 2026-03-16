@@ -1,4 +1,4 @@
 {
-  "pathUrl": "https://localhost:8080",
-  "webUrl": "https://localhost:4200"
+  "pathUrl": "http://localhost:8000",
+  "webUrl": "http://localhost:4200"
 }

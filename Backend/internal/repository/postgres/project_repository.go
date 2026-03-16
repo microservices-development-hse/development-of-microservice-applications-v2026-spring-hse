@@ -20,7 +20,7 @@ func NewProjectRepository(db *gorm.DB) *ProjectRepository {
 }
 
 func (r *ProjectRepository) CreateProject(project *models.Project) error {
-	err := r.db.Create(project).Error
+	err := r.db.Table("projects").Create(project).Error
 	if err != nil {
 		logrus.Errorf("Failed to create project %s: %v", project.Title, err)
 		return err
@@ -37,11 +37,11 @@ func (r *ProjectRepository) GetAllProjects(limit, offset int) ([]models.Project,
 		totalCount int64
 	)
 
-	if err := r.db.Model(&models.Project{}).Count(&totalCount).Error; err != nil {
+	if err := r.db.Table("projects").Count(&totalCount).Error; err != nil {
 		return nil, 0, fmt.Errorf("failed to count projects: %w", err)
 	}
 
-	if err := r.db.Limit(limit).Offset(offset).Find(&projects).Error; err != nil {
+	if err := r.db.Table("projects").Limit(limit).Offset(offset).Find(&projects).Error; err != nil {
 		return nil, 0, fmt.Errorf("failed to fetch projects page: %w", err)
 	}
 
@@ -51,7 +51,7 @@ func (r *ProjectRepository) GetAllProjects(limit, offset int) ([]models.Project,
 func (r *ProjectRepository) GetProjectByID(id int) (*models.Project, error) {
 	var project models.Project
 
-	err := r.db.First(&project, id).Error
+	err := r.db.Table("projects").Where("id = ?", id).First(&project).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			logrus.Infof("Project with ID %d not found", id)
@@ -69,7 +69,7 @@ func (r *ProjectRepository) GetProjectByID(id int) (*models.Project, error) {
 func (r *ProjectRepository) GetProjectByKey(key string) (*models.Project, error) {
 	var project models.Project
 
-	err := r.db.Where("key = ?", key).First(&project).Error
+	err := r.db.Table("projects").Where("key = ?", key).First(&project).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			logrus.Infof("Project with key %s not found", key)
@@ -105,7 +105,7 @@ func (r *ProjectRepository) GetBasicStats(projectID int) (map[string]interface{}
 }
 
 func (r *ProjectRepository) UpdateProject(project *models.Project) error {
-	err := r.db.Model(project).Updates(project).Error
+	err := r.db.Table("projects").Where("id = ?", project.ID).Updates(project).Error
 	if err != nil {
 		logrus.Errorf("Failed to update project ID %d: %v", project.ID, err)
 		return err
@@ -117,7 +117,7 @@ func (r *ProjectRepository) UpdateProject(project *models.Project) error {
 }
 
 func (r *ProjectRepository) DeleteProject(id int) error {
-	err := r.db.Delete(&models.Project{}, id).Error
+	err := r.db.Table("projects").Where("id = ?", id).Delete(nil).Error
 	if err != nil {
 		logrus.Errorf("Failed to delete project ID %d: %v", id, err)
 		return err

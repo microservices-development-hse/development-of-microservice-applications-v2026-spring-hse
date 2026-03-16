@@ -6,7 +6,7 @@ ProgramSettings:
 
 DBSettings:
   dbUser: "pguser"
-  dbPassword: "pgpwd"
+  dbPassword: "pgpassword"
   dbHost: "localhost"
   dbPort: 5432
   dbName: "testdb"

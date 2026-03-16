@@ -9,7 +9,7 @@ import { IRequestObject } from '../models/requestObj.model';
   providedIn: 'root'
 })
 export class DatabaseProjectServices {
-  private urlPath: string = 'http://localhost:8080'; // Временное решение
+  private urlPath: string = 'http://localhost:8000/api/v1'; // Временное решение
 
   constructor(private http: HttpClient) {
   }

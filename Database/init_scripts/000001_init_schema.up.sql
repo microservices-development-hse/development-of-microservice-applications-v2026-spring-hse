@@ -1,14 +1,12 @@
 DO $$ 
 BEGIN
   IF NOT EXISTS (SELECT FROM pg_catalog.pg_user WHERE usename = 'pguser') THEN
-    CREATE USER pguser WITH PASSWORD 'pgpwd';
+    CREATE USER pguser WITH PASSWORD 'pgpassword';
   END IF;
 END $$;
 
 GRANT ALL PRIVILEGES ON DATABASE testdb TO pguser;
 ALTER DATABASE testdb OWNER TO pguser;
-
-\c testdb
 
 GRANT ALL ON SCHEMA public TO pguser;
 

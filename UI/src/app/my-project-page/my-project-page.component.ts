@@ -22,8 +22,8 @@ export class MyProjectPageComponent implements OnInit {
     this.loading = true
     this.myProjectService.getAll().subscribe({
         next: projects => {
-            this.noProjects = projects.data.length == 0;
-            this.myProjects = projects.data
+            this.noProjects = projects.projects.length == 0;
+            this.myProjects = projects.projects
             this.loading = false
             this.inited = true
         },

@@ -3,30 +3,47 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { IRequest } from '../models/request.model';
+import { map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProjectServices {
-  private urlPath: string = 'http://localhost:8080'; // Временное решение
+  private urlPath: string = 'http://localhost:8000/api/v1'; // Временное решение
 
   constructor(private http: HttpClient) {
   }
 
-  getAll(page: number = 1, searchName: string = ''): Observable<IRequest> {
-    const params = new HttpParams()
-      .set('page', String(page))
-      .set('limit', '20')
-      .set('search', searchName || '');
+ getAll(page: number = 1, searchName: string = ''): Observable<IRequest> {
+   const params = new HttpParams()
+     .set('page', String(page))
+     .set('limit', '20')
+     .set('search', searchName || '');
 
-    const url = `${this.urlPath}/projects`;
-    return this.http.get<IRequest>(url, { params }).pipe(
-      catchError(err => {
-        console.error('ProjectServices.getAll error', err);
-        return throwError(() => err);
-      })
-    );
-  }
+   const url = `${this.urlPath}/projects`;
+
+   return this.http.get<any>(url, { params }).pipe(
+      map((response: any) => {
+
+      if (Array.isArray(response)) {
+        return {
+          data: response,
+          pageInfo: {
+            page: 1,
+            limit: response.length,
+            total: response.length
+          }
+        };
+      }
+
+       return response;
+     }),
+     catchError(err => {
+       console.error(err);
+       return throwError(() => err);
+     })
+   );
+ }
 
   addProject(key: string): Observable<IRequest> {
     const url = `${this.urlPath}/connector/updateProject`;
