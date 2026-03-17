@@ -32,5 +32,5 @@ type IssueRepository interface {
 }
 
 func (Issue) TableName() string {
-	return "\"Issue\""
+	return "issues"
 }

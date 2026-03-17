@@ -36,7 +36,7 @@ func (r *AnalyticsRepository) GetLatestSnapshot(ctx context.Context, projectID i
 func (r *AnalyticsRepository) GetTaskStatusDistribution(ctx context.Context, projectID int) ([]models.DistributionItem, error) {
 	var results []models.DistributionItem
 
-	err := r.db.WithContext(ctx).Table("Issue").
+	err := r.db.WithContext(ctx).Table("issues").
 		Select("status as name, count(*) as value").
 		Where("project_id = ?", projectID).
 		Group("status").
@@ -48,7 +48,7 @@ func (r *AnalyticsRepository) GetTaskStatusDistribution(ctx context.Context, pro
 func (r *AnalyticsRepository) GetTaskPriorityDistribution(ctx context.Context, projectID int) ([]models.DistributionItem, error) {
 	var results []models.DistributionItem
 
-	err := r.db.WithContext(ctx).Table("Issue").
+	err := r.db.WithContext(ctx).Table("issues").
 		Select("priority as name, count(*) as value").
 		Where("project_id = ?", projectID).
 		Group("priority").

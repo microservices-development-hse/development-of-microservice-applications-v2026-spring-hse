@@ -17,5 +17,5 @@ type ProjectRepository interface {
 }
 
 func (Project) TableName() string {
-	return "Project"
+	return "projects"
 }
