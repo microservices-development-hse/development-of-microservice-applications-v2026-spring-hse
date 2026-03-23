@@ -8,8 +8,8 @@ ProgramSettings:
 
 
 DBSettings:
-  dbUser: "postgres"
-  dbPassword: "pgpwd"
+  dbUser: "pguser"
+  dbPassword: "pgpassword"
   dbHost: "localhost"
   dbPort: 5432
-  dbName: "jira_analyzer"
+  dbName: "testdb"

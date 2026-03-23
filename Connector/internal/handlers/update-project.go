@@ -121,11 +121,13 @@ func (h *UpdateProjectHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	if err := h.loader.LoadIssues(ctx, allIssues, allUsers); err != nil {
-		logger.Error("updateProject: load issues: %v", err)
-		http.Error(w, "failed to save issues to database", http.StatusInternalServerError)
+	if len(allIssues) > 0 {
+		if err := h.loader.LoadIssues(ctx, allIssues, allUsers); err != nil {
+			logger.Error("updateProject: load issues: %v", err)
+			http.Error(w, "failed to save issues to database", http.StatusInternalServerError)
 
-		return
+			return
+		}
 	}
 
 	logger.Info("updateProject: project %q updated, %d issues loaded", projectKey, len(allIssues))
