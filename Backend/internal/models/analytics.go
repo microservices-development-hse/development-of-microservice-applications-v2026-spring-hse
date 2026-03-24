@@ -15,7 +15,7 @@ type AnalyticsSnapshot struct {
 }
 
 func (AnalyticsSnapshot) TableName() string {
-	return "AnalyticsSnapshot"
+	return "analytics_snapshots"
 }
 
 type TaskComplexity struct {

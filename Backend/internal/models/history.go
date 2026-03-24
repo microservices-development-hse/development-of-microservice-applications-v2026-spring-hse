@@ -18,5 +18,5 @@ type HistoryRepository interface {
 }
 
 func (StatusChanges) TableName() string {
-	return "StatusChanges"
+	return "status_changes"
 }

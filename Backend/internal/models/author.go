@@ -15,5 +15,5 @@ type AuthorRepository interface {
 }
 
 func (Author) TableName() string {
-	return "\"Author\""
+	return "authors"
 }
