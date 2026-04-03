@@ -13,27 +13,25 @@ GRANT ALL ON SCHEMA public TO pguser;
 
 CREATE TABLE authors (
     id SERIAL PRIMARY KEY,
-    external_id VARCHAR(255) UNIQUE NOT NULL,
-    name TEXT NOT NULL,
-    email TEXT
+    external_id TEXT UNIQUE,
+    name TEXT NOT NULL
 );
 
 CREATE TABLE projects (
     id SERIAL PRIMARY KEY,
     key VARCHAR(10) UNIQUE NOT NULL,
-    title TEXT NOT NULL
+    title TEXT NOT NULL,
+    url TEXT
 );
 
 CREATE TABLE issues (
     id SERIAL PRIMARY KEY,
-    external_id VARCHAR(255) UNIQUE NOT NULL,
+    external_id TEXT UNIQUE NOT NULL,
     project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
     author_id INTEGER REFERENCES authors(id),
     assignee_id INTEGER REFERENCES authors(id),
     key TEXT NOT NULL UNIQUE,
     summary TEXT NOT NULL,
-    description TEXT,
-    type TEXT,
     priority TEXT,
     status TEXT,
     created_time TIMESTAMP WITH TIME ZONE,
@@ -60,6 +58,12 @@ CREATE TABLE analytics_snapshots (
 
 CREATE INDEX "idx_analytics_snapshot_project_id" ON analytics_snapshots ("project_id");
 CREATE INDEX "idx_analytics_snapshot_type" ON analytics_snapshots ("type");
+CREATE INDEX "idx_issues_project_id" ON issues ("project_id");
+
+CREATE INDEX "idx_issues_project_status" ON issues ("project_id", "status");
+CREATE INDEX "idx_issues_project_priority" ON issues ("project_id", "priority");
+
+CREATE INDEX "idx_status_changes_issue_id" ON status_changes ("issue_id");
 
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO pguser;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO pguser;

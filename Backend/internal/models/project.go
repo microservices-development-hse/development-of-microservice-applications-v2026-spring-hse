@@ -4,6 +4,7 @@ type Project struct {
 	ID    int    `json:"id" gorm:"primaryKey;column:id"`
 	Key   string `json:"key" gorm:"column:key;unique"`
 	Title string `json:"title" gorm:"column:title"`
+	URL   string `json:"url" gorm:"column:url"`
 }
 
 type ProjectRepository interface {
