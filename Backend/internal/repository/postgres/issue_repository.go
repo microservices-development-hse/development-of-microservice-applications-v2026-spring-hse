@@ -116,9 +116,9 @@ func (r *IssueRepository) UpdateIssueWithHistory(issue *models.Issue, fromStatus
 				return fmt.Errorf("failed to create status change record: %w", err)
 			}
 		}
+
 		return nil
 	})
-
 	if err != nil {
 		return fmt.Errorf("transaction failed: %w", err)
 	}
