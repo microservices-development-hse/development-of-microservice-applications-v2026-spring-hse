@@ -35,3 +35,19 @@ func (r *HistoryRepository) GetHistoryByIssueID(issueID int) ([]models.StatusCha
 
 	return changes, nil
 }
+
+func (r *IssueRepository) UpdateStatusWithHistory(issueID int, fromStatus, toStatus string) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Table("issues").Where("id = ?", issueID).Update("status", toStatus).Error; err != nil {
+			return err
+		}
+
+		change := models.StatusChanges{
+			IssueID:    issueID,
+			FromStatus: fromStatus,
+			ToStatus:   toStatus,
+		}
+
+		return tx.Create(&change).Error
+	})
+}

@@ -69,7 +69,6 @@ func (s *issueService) SyncIssue(issue *models.Issue, authorData *models.Author)
 			if err := s.authorRepo.CreateAuthor(authorData); err != nil {
 				return fmt.Errorf("failed to create author: %w", err)
 			}
-
 			issue.AuthorID = authorData.ID
 		} else {
 			issue.AuthorID = author.ID
@@ -88,12 +87,14 @@ func (s *issueService) SyncIssue(issue *models.Issue, authorData *models.Author)
 
 		logrus.Infof("Service: issue %s created", issue.Key)
 	} else {
+		oldStatus := existingIssue.Status
 		issue.ID = existingIssue.ID
-		if err := s.issueRepo.UpdateIssue(issue); err != nil {
-			return fmt.Errorf("failed to update issue: %w", err)
+
+		if err := s.issueRepo.UpdateIssueWithHistory(issue, oldStatus); err != nil {
+			return fmt.Errorf("failed to update issue with history: %w", err)
 		}
 
-		logrus.Infof("Service: issue %s updated", issue.Key)
+		logrus.Infof("Service: issue %s updated (status sync)", issue.Key)
 	}
 
 	return nil

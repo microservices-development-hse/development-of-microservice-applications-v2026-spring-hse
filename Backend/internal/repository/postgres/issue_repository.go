@@ -99,3 +99,27 @@ func (r *IssueRepository) DeleteIssue(id int) error {
 
 	return nil
 }
+
+func (r *IssueRepository) UpdateIssueWithHistory(issue *models.Issue, fromStatus string) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Save(issue).Error; err != nil {
+			return err
+		}
+
+		if fromStatus != "" && fromStatus != issue.Status {
+			change := models.StatusChanges{
+				IssueID:    issue.ID,
+				FromStatus: fromStatus,
+				ToStatus:   issue.Status,
+			}
+
+			if err := tx.Create(&change).Error; err != nil {
+				return fmt.Errorf("failed to record status change: %w", err)
+			}
+
+			logrus.Infof("History: status change recorded for issue %s (%s -> %s)", issue.Key, fromStatus, issue.Status)
+		}
+
+		return nil
+	})
+}

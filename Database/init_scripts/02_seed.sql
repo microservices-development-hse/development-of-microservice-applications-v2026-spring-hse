@@ -32,6 +32,17 @@ BEGIN
         'Исправить баг в миграциях', 'Done', 'Critical', 
         NOW() - INTERVAL '10 days', NOW() - INTERVAL '2 days'
     ) ON CONFLICT (external_id) DO NOTHING;
+
+    INSERT INTO issues (
+        project_id, author_id, assignee_id, external_id, key,
+        summary, status, priority, created_time
+    ) VALUES (
+        p1_id, a1_id, a2_id, 'jira-task-003', 'PROJ1-3',
+        'Тест переоткрытия', 'Reopened', 'Medium',NOW() - INTERVAL '1 day'
+    ) ON CONFLICT (external_id) DO NOTHING;
+
+INSERT INTO issues (project_id, author_id, assignee_id, external_id, key, summary, status, priority, created_time)
+VALUES (p1_id, a1_id, a2_id, 'jira-task-004', 'PROJ1-4', 'Тест резолва', 'Resolved', 'Low', NOW() - INTERVAL '1 day');
 END $$;
 
 DO $$ 

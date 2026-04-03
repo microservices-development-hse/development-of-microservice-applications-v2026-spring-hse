@@ -27,6 +27,7 @@ type IssueRepository interface {
 	GetIssueByExternalID(externalID string) (*Issue, error)
 	GetIssueByKey(key string) (*Issue, error)
 	DeleteIssue(id int) error
+	UpdateIssueWithHistory(issue *Issue, fromStatus string) error
 }
 
 func (Issue) TableName() string {

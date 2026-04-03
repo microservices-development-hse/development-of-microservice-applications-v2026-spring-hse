@@ -43,5 +43,5 @@ type AnalyticsRepository interface {
 	GetTaskPriorityDistribution(ctx context.Context, projectID int) ([]DistributionItem, error)
 	GetProjectComplexity(ctx context.Context, projectID int) ([]TaskComplexity, error)
 	GetOpenTasksBottlenecks(ctx context.Context, projectID int) ([]OpenTaskDuration, error)
-	CalculateTimeInState(ctx context.Context, projectID int) (map[string]float64, error)
+	CalculateTimeInState(ctx context.Context, projectID int) (map[string][]float64, error)
 }
