@@ -101,9 +101,9 @@ func (r *IssueRepository) DeleteIssue(id int) error {
 }
 
 func (r *IssueRepository) UpdateIssueWithHistory(issue *models.Issue, fromStatus string) error {
-	return r.db.Transaction(func(tx *gorm.DB) error {
+	err := r.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Save(issue).Error; err != nil {
-			return err
+			return fmt.Errorf("failed to save issue: %w", err)
 		}
 
 		if fromStatus != "" && fromStatus != issue.Status {
@@ -112,14 +112,16 @@ func (r *IssueRepository) UpdateIssueWithHistory(issue *models.Issue, fromStatus
 				FromStatus: fromStatus,
 				ToStatus:   issue.Status,
 			}
-
 			if err := tx.Create(&change).Error; err != nil {
-				return fmt.Errorf("failed to record status change: %w", err)
+				return fmt.Errorf("failed to create status change record: %w", err)
 			}
-
-			logrus.Infof("History: status change recorded for issue %s (%s -> %s)", issue.Key, fromStatus, issue.Status)
 		}
-
 		return nil
 	})
+
+	if err != nil {
+		return fmt.Errorf("transaction failed: %w", err)
+	}
+
+	return nil
 }

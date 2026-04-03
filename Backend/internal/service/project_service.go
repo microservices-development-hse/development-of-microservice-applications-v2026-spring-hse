@@ -92,6 +92,7 @@ func (s *projectService) GetProjectDetails(id int) (*models.Project, map[string]
 	stats, err := s.repo.GetDryStatistics(id)
 	if err != nil {
 		logrus.Warnf("Service: dry statistics for project %d failed: %v", id, err)
+
 		stats = make(map[string]interface{})
 	}
 

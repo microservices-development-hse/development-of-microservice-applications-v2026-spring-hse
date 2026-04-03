@@ -152,17 +152,16 @@ func (r *ProjectRepository) GetDryStatistics(projectID int) (map[string]interfac
 		`).
 		Where("project_id = ?", projectID).
 		Scan(&stats).Error
-
 	if err != nil {
 		return nil, err
 	}
 
 	// Среднее количество задач в день за последнюю неделю
 	var weeklyCount int64
+
 	err = r.db.Table("issues").
 		Where("project_id = ? AND created_time > NOW() - INTERVAL '7 days'", projectID).
 		Count(&weeklyCount).Error
-
 	if err != nil {
 		return nil, err
 	}

@@ -69,6 +69,7 @@ func (s *issueService) SyncIssue(issue *models.Issue, authorData *models.Author)
 			if err := s.authorRepo.CreateAuthor(authorData); err != nil {
 				return fmt.Errorf("failed to create author: %w", err)
 			}
+
 			issue.AuthorID = authorData.ID
 		} else {
 			issue.AuthorID = author.ID

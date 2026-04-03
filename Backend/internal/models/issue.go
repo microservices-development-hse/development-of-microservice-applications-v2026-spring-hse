@@ -7,12 +7,12 @@ import (
 type Issue struct {
 	ID          int        `json:"id" db:"id"`
 	ExternalID  string     `json:"external_id" db:"external_id"`
-	ProjectID   int        `json:"project_id" db:"project_id"`
+	ProjectID   int        `json:"project_id" db:"project_id" gorm:"index:idx_project_priority"`
 	AuthorID    int        `json:"author_id" db:"author_id"`
 	AssigneeID  int        `json:"assignee_id" db:"assignee_id"`
 	Key         string     `json:"key" db:"key"`
 	Summary     string     `json:"summary" db:"summary"`
-	Priority    string     `json:"priority" db:"priority"`
+	Priority    string     `json:"priority" db:"priority" gorm:"index:idx_project_priority"`
 	Status      string     `json:"status" db:"status"`
 	CreatedTime time.Time  `json:"created_time" db:"created_time"`
 	ClosedTime  *time.Time `json:"closed_time,omitempty" db:"closed_time"`
