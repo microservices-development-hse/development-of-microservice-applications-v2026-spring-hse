@@ -12,8 +12,6 @@ type Issue struct {
 	AssigneeID  int        `json:"assignee_id" db:"assignee_id"`
 	Key         string     `json:"key" db:"key"`
 	Summary     string     `json:"summary" db:"summary"`
-	Description string     `json:"description,omitempty" db:"description"`
-	Type        string     `json:"type" db:"type"`
 	Priority    string     `json:"priority" db:"priority"`
 	Status      string     `json:"status" db:"status"`
 	CreatedTime time.Time  `json:"created_time" db:"created_time"`

@@ -20,7 +20,7 @@ func NewIssueHandler(s service.IssueService) *IssueHandler {
 }
 
 func (h *IssueHandler) GetProjectIssues(w http.ResponseWriter, r *http.Request) {
-	projectID, _ := strconv.Atoi(chi.URLParam(r, "projectID"))
+	projectID, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	if projectID <= 0 {
 		h.sendError(w, http.StatusBadRequest, "Invalid project ID")
 
