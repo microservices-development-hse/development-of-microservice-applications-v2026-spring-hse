@@ -89,9 +89,11 @@ func (s *projectService) GetProjectDetails(id int) (*models.Project, map[string]
 		return nil, nil, fmt.Errorf("project with ID %d not found", id)
 	}
 
-	stats, err := s.repo.GetBasicStats(id)
+	stats, err := s.repo.GetDryStatistics(id)
 	if err != nil {
-		logrus.Warnf("Service: statistics for project %d are incomplete: %v", id, err)
+		logrus.Warnf("Service: dry statistics for project %d failed: %v", id, err)
+
+		stats = make(map[string]interface{})
 	}
 
 	return project, stats, nil

@@ -99,3 +99,29 @@ func (r *IssueRepository) DeleteIssue(id int) error {
 
 	return nil
 }
+
+func (r *IssueRepository) UpdateIssueWithHistory(issue *models.Issue, fromStatus string) error {
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Save(issue).Error; err != nil {
+			return fmt.Errorf("failed to save issue: %w", err)
+		}
+
+		if fromStatus != "" && fromStatus != issue.Status {
+			change := models.StatusChanges{
+				IssueID:    issue.ID,
+				FromStatus: fromStatus,
+				ToStatus:   issue.Status,
+			}
+			if err := tx.Create(&change).Error; err != nil {
+				return fmt.Errorf("failed to create status change record: %w", err)
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("transaction failed: %w", err)
+	}
+
+	return nil
+}

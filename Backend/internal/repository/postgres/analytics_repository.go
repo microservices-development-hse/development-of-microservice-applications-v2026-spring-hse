@@ -88,14 +88,14 @@ func (r *AnalyticsRepository) GetOpenTasksBottlenecks(ctx context.Context, proje
 			"issues.status AS current_status",
 			timeInStatusExpr+" AS time_in_status").
 		Joins("LEFT JOIN status_changes sc ON sc.issue_id = issues.id").
-		Where("issues.project_id = ? AND issues.closed_time IS NULL", projectID).
+		Where("issues.project_id = ? AND issues.closed_time IS NULL AND status NOT IN ('Resolved', 'Done', 'Closed')", projectID).
 		Group("issues.id, issues.key, issues.status, issues.created_time").
 		Scan(&results).Error
 
 	return results, err
 }
 
-func (r *AnalyticsRepository) CalculateTimeInState(ctx context.Context, projectID int) (map[string]float64, error) {
+func (r *AnalyticsRepository) CalculateTimeInState(ctx context.Context, projectID int) (map[string][]float64, error) {
 	var changes []models.StatusChanges
 
 	err := r.db.WithContext(ctx).
@@ -109,14 +109,15 @@ func (r *AnalyticsRepository) CalculateTimeInState(ctx context.Context, projectI
 		return nil, err
 	}
 
-	stateDurations := make(map[string]float64)
+	res := make(map[string][]float64)
 
 	for i := 1; i < len(changes); i++ {
 		if changes[i].IssueID == changes[i-1].IssueID {
 			duration := changes[i].ChangeTime.Sub(changes[i-1].ChangeTime).Hours()
-			stateDurations[changes[i-1].ToStatus] += duration
+			status := changes[i-1].ToStatus
+			res[status] = append(res[status], duration)
 		}
 	}
 
-	return stateDurations, nil
+	return res, nil
 }

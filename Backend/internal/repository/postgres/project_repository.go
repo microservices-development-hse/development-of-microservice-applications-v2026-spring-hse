@@ -3,6 +3,7 @@ package postgres
 import (
 	"errors"
 	"fmt"
+	"math"
 
 	"github.com/microservices-development-hse/backend/internal/models"
 	"github.com/sirupsen/logrus"
@@ -126,4 +127,58 @@ func (r *ProjectRepository) DeleteProject(id int) error {
 	logrus.Infof("Project ID %d deleted", id)
 
 	return nil
+}
+
+func (r *ProjectRepository) GetDryStatistics(projectID int) (map[string]interface{}, error) {
+	var stats struct {
+		Total      int64
+		Open       int64
+		Closed     int64
+		Reopened   int64
+		Resolved   int64
+		InProgress int64
+		AvgLead    *float64 // Указатель на случай NULL
+	}
+
+	err := r.db.Table("issues").
+		Select(`
+			COUNT(*) as total,
+			COUNT(*) FILTER (WHERE closed_time IS NULL) as open,
+			COUNT(*) FILTER (WHERE closed_time IS NOT NULL) as closed,
+			COUNT(*) FILTER (WHERE status = 'Reopened') as reopened,
+			COUNT(*) FILTER (WHERE status = 'Resolved') as resolved,
+			COUNT(*) FILTER (WHERE status = 'In Progress') as in_progress,
+			AVG(EXTRACT(EPOCH FROM (closed_time - created_time)) / 3600) FILTER (WHERE closed_time IS NOT NULL) as avg_lead
+		`).
+		Where("project_id = ?", projectID).
+		Scan(&stats).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// Среднее количество задач в день за последнюю неделю
+	var weeklyCount int64
+
+	err = r.db.Table("issues").
+		Where("project_id = ? AND created_time > NOW() - INTERVAL '7 days'", projectID).
+		Count(&weeklyCount).Error
+	if err != nil {
+		return nil, err
+	}
+
+	avgLeadValue := 0.0
+	if stats.AvgLead != nil {
+		avgLeadValue = *stats.AvgLead
+	}
+
+	return map[string]interface{}{
+		"total_tasks":       stats.Total,
+		"open_tasks":        stats.Open,
+		"closed_tasks":      stats.Closed,
+		"reopened_tasks":    stats.Reopened,
+		"resolved_tasks":    stats.Resolved,
+		"in_progress_tasks": stats.InProgress,
+		"avg_lead_time_h":   avgLeadValue,
+		"avg_daily_weekly":  math.Round(float64(weeklyCount)/7.0*100) / 100,
+	}, nil
 }

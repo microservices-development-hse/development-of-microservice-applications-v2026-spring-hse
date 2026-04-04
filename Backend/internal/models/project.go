@@ -15,6 +15,7 @@ type ProjectRepository interface {
 	GetProjectByID(id int) (*Project, error)
 	GetBasicStats(projectID int) (map[string]interface{}, error)
 	DeleteProject(id int) error
+	GetDryStatistics(projectID int) (map[string]interface{}, error)
 }
 
 func (Project) TableName() string {
