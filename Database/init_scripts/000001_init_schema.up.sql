@@ -48,6 +48,9 @@ CREATE TABLE status_changes (
     to_status TEXT
 );
 
+ALTER TABLE status_changes ADD CONSTRAINT status_changes_unique 
+    UNIQUE (issue_id, author_id, change_time, from_status, to_status);
+
 CREATE TABLE analytics_snapshots (
     id SERIAL PRIMARY KEY,
     project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,

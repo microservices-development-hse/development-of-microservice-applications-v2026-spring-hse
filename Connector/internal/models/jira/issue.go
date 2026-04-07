@@ -47,10 +47,22 @@ type Issue struct {
 }
 
 type Fields struct {
-	Summary string `json:"summary"`
-	Status  Status `json:"status"`
-	Created JTime  `json:"created"`
-	Updated JTime  `json:"updated"`
+	Summary      string       `json:"summary"`
+	Status       Status       `json:"status"`
+	Created      JTime        `json:"created"`
+	Updated      JTime        `json:"updated"`
+	Priority     Priority     `json:"priority"`
+	Creator      Author       `json:"creator"`
+	Assignee     *Author      `json:"assignee"`
+	TimeTracking TimeTracking `json:"timetracking"`
+}
+
+type Priority struct {
+	Name string `json:"name"`
+}
+
+type TimeTracking struct {
+	TimeSpentSeconds int `json:"timeSpentSeconds"`
 }
 
 type Status struct {
@@ -72,6 +84,7 @@ type History struct {
 
 type Author struct {
 	Self        string `json:"self"`
+	AccountID   string `json:"accountId"`
 	Name        string `json:"name"`
 	DisplayName string `json:"displayName"`
 }

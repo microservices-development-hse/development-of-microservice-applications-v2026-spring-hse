@@ -10,18 +10,20 @@ import (
 )
 
 type Loader struct {
-	db                *sql.DB
-	stmtUpsertProject *sql.Stmt
-	stmtUpsertIssue   *sql.Stmt
-	stmtInsertUser    *sql.Stmt
+	db                     *sql.DB
+	stmtUpsertProject      *sql.Stmt
+	stmtUpsertIssue        *sql.Stmt
+	stmtInsertAuthor       *sql.Stmt
+	stmtInsertStatusChange *sql.Stmt
 }
 
-func NewLoader(db *sql.DB, upsertProject, upsertIssue, insertUser *sql.Stmt) *Loader {
+func NewLoader(db *sql.DB, upsertProject, upsertIssue, insertAuthor, insertStatusChange *sql.Stmt) *Loader {
 	return &Loader{
-		db:                db,
-		stmtUpsertProject: upsertProject,
-		stmtUpsertIssue:   upsertIssue,
-		stmtInsertUser:    insertUser,
+		db:                     db,
+		stmtUpsertProject:      upsertProject,
+		stmtUpsertIssue:        upsertIssue,
+		stmtInsertAuthor:       insertAuthor,
+		stmtInsertStatusChange: insertStatusChange,
 	}
 }
 
@@ -37,7 +39,7 @@ func (l *Loader) LoadProject(ctx context.Context, project dbmodels.Project) (int
 	var id int
 
 	err = tx.StmtContext(ctx, l.stmtUpsertProject).QueryRowContext(
-		ctx, project.Key, project.Name, project.URL,
+		ctx, project.Key, project.Title, project.URL,
 	).Scan(&id)
 	if err != nil {
 		logger.Error("loader: upsert project %q failed: %v", project.Key, err)
@@ -54,46 +56,118 @@ func (l *Loader) LoadProject(ctx context.Context, project dbmodels.Project) (int
 	return id, nil
 }
 
-func (l *Loader) LoadIssues(ctx context.Context, issues []dbmodels.Issue, users []dbmodels.User) error {
+func (l *Loader) UpsertAuthors(ctx context.Context, authors map[string]dbmodels.Author) (map[string]int, error) {
+	tx, err := l.db.BeginTx(ctx, nil)
+	if err != nil {
+		logger.Error("loader: begin tx for authors failed: %v", err)
+		return nil, fmt.Errorf("loader: begin tx: %w", err)
+	}
+
+	defer func() { _ = tx.Rollback() }()
+
+	stmt := tx.StmtContext(ctx, l.stmtInsertAuthor)
+	result := make(map[string]int, len(authors))
+
+	for externalID, author := range authors {
+		var id int
+		if err := stmt.QueryRowContext(ctx, author.ExternalID, author.Username).Scan(&id); err != nil {
+			logger.Error("loader: upsert author %q failed: %v", author.Username, err)
+			return nil, fmt.Errorf("loader: upsert author %q: %w", author.Username, err)
+		}
+
+		result[externalID] = id
+	}
+
+	if err := tx.Commit(); err != nil {
+		logger.Error("loader: commit authors tx failed: %v", err)
+		return nil, fmt.Errorf("loader: commit authors tx: %w", err)
+	}
+
+	logger.Info("loader: successfully upserted %d authors", len(authors))
+
+	return result, nil
+}
+
+func (l *Loader) LoadIssues(ctx context.Context, issues []dbmodels.Issue) (map[string]int, error) {
 	tx, err := l.db.BeginTx(ctx, nil)
 	if err != nil {
 		logger.Error("loader: begin tx for issues failed: %v", err)
-		return fmt.Errorf("loader: begin tx: %w", err)
+		return nil, fmt.Errorf("loader: begin tx: %w", err)
 	}
 
 	defer func() { _ = tx.Rollback() }()
 
 	upsertIssue := tx.StmtContext(ctx, l.stmtUpsertIssue)
-	insertUser := tx.StmtContext(ctx, l.stmtInsertUser)
-
-	for _, u := range users {
-		if _, err := insertUser.ExecContext(ctx, u.Username, u.DisplayName); err != nil {
-			logger.Error("loader: insert user %q failed: %v", u.Username, err)
-			return fmt.Errorf("loader: insert user %q: %w", u.Username, err)
-		}
-	}
+	issueIDs := make(map[string]int, len(issues))
 
 	for _, issue := range issues {
-		if _, err := upsertIssue.ExecContext(ctx,
+		var id int
+
+		err := upsertIssue.QueryRowContext(ctx,
+			issue.ExternalID,
 			issue.ProjectID,
+			issue.AuthorID,
+			issue.AssigneeID,
 			issue.Key,
 			issue.Summary,
+			issue.Priority,
 			issue.Status,
-			issue.Created,
-			issue.Updated,
-			issue.Changelog,
-		); err != nil {
+			issue.CreatedTime,
+			issue.UpdatedTime,
+			issue.TimeSpent,
+		).Scan(&id)
+		if err != nil {
 			logger.Error("loader: upsert issue %q failed: %v", issue.Key, err)
-			return fmt.Errorf("loader: upsert issue %q: %w", issue.Key, err)
+			return nil, fmt.Errorf("loader: upsert issue %q: %w", issue.Key, err)
 		}
+
+		issueIDs[issue.Key] = id
 	}
 
 	if err := tx.Commit(); err != nil {
 		logger.Error("loader: commit issues tx failed: %v", err)
-		return fmt.Errorf("loader: commit issues tx: %w", err)
+		return nil, fmt.Errorf("loader: commit issues tx: %w", err)
 	}
 
-	logger.Info("loader: successfully loaded %d issues and %d users", len(issues), len(users))
+	logger.Info("loader: successfully loaded %d issues", len(issues))
+
+	return issueIDs, nil
+}
+
+func (l *Loader) LoadStatusChanges(ctx context.Context, changes []dbmodels.StatusChange) error {
+	if len(changes) == 0 {
+		return nil
+	}
+
+	tx, err := l.db.BeginTx(ctx, nil)
+	if err != nil {
+		logger.Error("loader: begin tx for status_changes failed: %v", err)
+		return fmt.Errorf("loader: begin tx: %w", err)
+	}
+
+	defer func() { _ = tx.Rollback() }()
+
+	stmt := tx.StmtContext(ctx, l.stmtInsertStatusChange)
+
+	for _, sc := range changes {
+		if _, err := stmt.ExecContext(ctx,
+			sc.IssueID,
+			sc.AuthorID,
+			sc.ChangeTime,
+			sc.FromStatus,
+			sc.ToStatus,
+		); err != nil {
+			logger.Error("loader: insert status_change for issue_id=%d failed: %v", sc.IssueID, err)
+			return fmt.Errorf("loader: insert status_change issue_id=%d: %w", sc.IssueID, err)
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		logger.Error("loader: commit status_changes tx failed: %v", err)
+		return fmt.Errorf("loader: commit status_changes tx: %w", err)
+	}
+
+	logger.Info("loader: successfully loaded %d status changes", len(changes))
 
 	return nil
 }
