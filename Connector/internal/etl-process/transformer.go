@@ -1,7 +1,6 @@
 package etlprocess
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -16,51 +15,50 @@ func TransformProject(jp jiramodels.ProjectResponse) (dbmodels.Project, error) {
 	}
 
 	return dbmodels.Project{
-		ID:   id,
-		Key:  jp.Key,
-		Name: jp.Name,
-		URL:  jp.Self,
+		ID:    id,
+		Key:   jp.Key,
+		Title: jp.Name,
+		URL:   jp.Self,
 	}, nil
 }
 
-func TransformIssue(ji jiramodels.Issue, projectID int) (dbmodels.Issue, []dbmodels.User, error) {
-	var changelogJSON interface{}
+func TransformIssue(ji jiramodels.Issue, projectID int, authorID, assigneeID *int) (dbmodels.Issue, error) {
+	return dbmodels.Issue{
+		ExternalID:  ji.ID,
+		ProjectID:   projectID,
+		AuthorID:    authorID,
+		AssigneeID:  assigneeID,
+		Key:         ji.Key,
+		Summary:     ji.Fields.Summary,
+		Priority:    ji.Fields.Priority.Name,
+		Status:      ji.Fields.Status.Name,
+		CreatedTime: ji.Fields.Created.Time,
+		UpdatedTime: ji.Fields.Updated.Time,
+		TimeSpent:   ji.Fields.TimeTracking.TimeSpentSeconds,
+	}, nil
+}
 
-	if ji.Changelog != nil {
-		raw, err := json.Marshal(ji.Changelog)
-		if err != nil {
-			return dbmodels.Issue{}, nil, fmt.Errorf("transform issue %s: marshal changelog: %w", ji.Key, err)
+func TransformStatusChanges(changelog *jiramodels.Changelog, issueID int, authorIDs map[string]int) []dbmodels.StatusChange {
+	var changes []dbmodels.StatusChange
+
+	for _, h := range changelog.Histories {
+		authorID, ok := authorIDs[h.Author.Name]
+		if !ok || authorID == 0 {
+			continue
 		}
 
-		changelogJSON = raw
-	}
-
-	issue := dbmodels.Issue{
-		ProjectID: projectID,
-		Key:       ji.Key,
-		Summary:   ji.Fields.Summary,
-		Status:    ji.Fields.Status.Name,
-		Created:   ji.Fields.Created.Time,
-		Updated:   ji.Fields.Updated.Time,
-		Changelog: changelogJSON,
-	}
-
-	var users []dbmodels.User
-
-	if ji.Changelog != nil {
-		seen := make(map[string]struct{})
-		for _, h := range ji.Changelog.Histories {
-			if _, ok := seen[h.Author.Name]; ok {
-				continue
+		for _, item := range h.Items {
+			if item.Field == "status" {
+				changes = append(changes, dbmodels.StatusChange{
+					IssueID:    issueID,
+					AuthorID:   authorID,
+					ChangeTime: h.Created.Time,
+					FromStatus: item.From,
+					ToStatus:   item.To,
+				})
 			}
-
-			seen[h.Author.Name] = struct{}{}
-			users = append(users, dbmodels.User{
-				Username:    h.Author.Name,
-				DisplayName: h.Author.DisplayName,
-			})
 		}
 	}
 
-	return issue, users, nil
+	return changes
 }

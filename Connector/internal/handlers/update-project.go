@@ -24,7 +24,8 @@ func NewUpdateProjectHandler(client *jiraclient.Client, retryConfig jiraclient.R
 			db,
 			database.StmtUpsertProject,
 			database.StmtUpsertIssue,
-			database.StmtInsertUser,
+			database.StmtInsertAuthor,
+			database.StmtInsertStatusChange,
 		),
 	}
 }
@@ -94,14 +95,60 @@ func (h *UpdateProjectHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	var allIssues []dbmodels.Issue
-
-	var allUsers []dbmodels.User
-
-	seenUsers := make(map[string]struct{})
+	seenAuthors := make(map[string]dbmodels.Author)
 
 	for _, ji := range jiraIssues {
-		issue, users, err := etlprocess.TransformIssue(ji, projectID)
+		if ji.Fields.Creator.Name != "" {
+			seenAuthors[ji.Fields.Creator.Name] = dbmodels.Author{
+				ExternalID: ji.Fields.Creator.Name,
+				Username:   ji.Fields.Creator.DisplayName,
+			}
+		}
+
+		if ji.Fields.Assignee != nil && ji.Fields.Assignee.Name != "" {
+			seenAuthors[ji.Fields.Assignee.Name] = dbmodels.Author{
+				ExternalID: ji.Fields.Assignee.Name,
+				Username:   ji.Fields.Assignee.DisplayName,
+			}
+		}
+
+		if ji.Changelog != nil {
+			for _, h := range ji.Changelog.Histories {
+				if h.Author.Name != "" {
+					seenAuthors[h.Author.Name] = dbmodels.Author{
+						ExternalID: h.Author.Name,
+						Username:   h.Author.DisplayName,
+					}
+				}
+			}
+		}
+	}
+
+	authorIDs, err := h.loader.UpsertAuthors(ctx, seenAuthors)
+	if err != nil {
+		logger.Error("updateProject: upsert authors: %v", err)
+		http.Error(w, "failed to save authors to database", http.StatusInternalServerError)
+
+		return
+	}
+
+	var allIssues []dbmodels.Issue
+
+	for _, ji := range jiraIssues {
+		var authorID *int
+		if id := authorIDs[ji.Fields.Creator.Name]; id != 0 {
+			authorID = &id
+		}
+
+		var assigneeID *int
+
+		if ji.Fields.Assignee != nil && ji.Fields.Assignee.Name != "" {
+			if id := authorIDs[ji.Fields.Assignee.Name]; id != 0 {
+				assigneeID = &id
+			}
+		}
+
+		issue, err := etlprocess.TransformIssue(ji, projectID, authorID, assigneeID)
 		if err != nil {
 			logger.Error("updateProject: transform issue %q: %v", ji.Key, err)
 			http.Error(w, "failed to transform issues", http.StatusInternalServerError)
@@ -110,33 +157,61 @@ func (h *UpdateProjectHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		}
 
 		allIssues = append(allIssues, issue)
-
-		for _, u := range users {
-			if _, ok := seenUsers[u.Username]; ok {
-				continue
-			}
-
-			seenUsers[u.Username] = struct{}{}
-			allUsers = append(allUsers, u)
-		}
 	}
 
-	if len(allIssues) > 0 {
-		if err := h.loader.LoadIssues(ctx, allIssues, allUsers); err != nil {
-			logger.Error("updateProject: load issues: %v", err)
-			http.Error(w, "failed to save issues to database", http.StatusInternalServerError)
+	if len(allIssues) == 0 {
+		logger.Info("updateProject: no issues found for project %q", projectKey)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"project":     projectKey,
+			"issuesCount": 0,
+			"status":      "ok",
+		})
 
-			return
-		}
+		return
 	}
 
-	logger.Info("updateProject: project %q updated, %d issues loaded", projectKey, len(allIssues))
+	issueIDs, err := h.loader.LoadIssues(ctx, allIssues)
+	if err != nil {
+		logger.Error("updateProject: load issues: %v", err)
+		http.Error(w, "failed to save issues to database", http.StatusInternalServerError)
+
+		return
+	}
+
+	var allStatusChanges []dbmodels.StatusChange
+
+	for _, ji := range jiraIssues {
+		if ji.Changelog == nil {
+			continue
+		}
+
+		issueID, ok := issueIDs[ji.Key]
+		if !ok {
+			continue
+		}
+
+		changes := etlprocess.TransformStatusChanges(ji.Changelog, issueID, authorIDs)
+		allStatusChanges = append(allStatusChanges, changes...)
+	}
+
+	if err := h.loader.LoadStatusChanges(ctx, allStatusChanges); err != nil {
+		logger.Error("updateProject: load status changes: %v", err)
+		http.Error(w, "failed to save status changes to database", http.StatusInternalServerError)
+
+		return
+	}
+
+	logger.Info("updateProject: project %q updated, %d issues, %d status changes loaded",
+		projectKey, len(allIssues), len(allStatusChanges))
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(map[string]interface{}{
-		"project":     projectKey,
-		"issuesCount": len(allIssues),
-		"status":      "ok",
+		"project":      projectKey,
+		"issuesCount":  len(allIssues),
+		"changesCount": len(allStatusChanges),
+		"status":       "ok",
 	})
 }

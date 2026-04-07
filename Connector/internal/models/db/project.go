@@ -1,8 +1,8 @@
 package db
 
 type Project struct {
-	ID   int    `db:"id"`
-	Key  string `db:"key"`
-	Name string `db:"name"`
-	URL  string `db:"url"`
+	ID    int    `db:"id"`
+	Key   string `db:"key"`
+	Title string `db:"title"`
+	URL   string `db:"url"`
 }
