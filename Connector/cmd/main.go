@@ -68,6 +68,7 @@ func main() {
 		retryCfg,
 		cfg.ProgramSettings.IssueInOneRequest,
 		database.GetDB(),
+		cfg.ProgramSettings.ThreadCount,
 	)
 
 	go func() {

@@ -1,7 +1,11 @@
 package etlprocess
 
 import (
+	"context"
 	"fmt"
+
+	"github.com/microservices-development-hse/connector/internal/logger"
+	"github.com/microservices-development-hse/connector/internal/workers"
 
 	jiraclient "github.com/microservices-development-hse/connector/internal/jira"
 	jiramodels "github.com/microservices-development-hse/connector/internal/models/jira"
@@ -11,13 +15,20 @@ type Extractor struct {
 	client      *jiraclient.Client
 	retryConfig jiraclient.RetryConfig
 	maxResults  int
+	threadCount int
 }
 
-func NewExtractor(client *jiraclient.Client, retryConfig jiraclient.RetryConfig, maxResults int) *Extractor {
+func NewExtractor(
+	client *jiraclient.Client,
+	retryConfig jiraclient.RetryConfig,
+	maxResults int,
+	threadCount int,
+) *Extractor {
 	return &Extractor{
 		client:      client,
 		retryConfig: retryConfig,
 		maxResults:  maxResults,
+		threadCount: threadCount,
 	}
 }
 
@@ -41,35 +52,24 @@ func (e *Extractor) GetProjects() ([]jiramodels.ProjectResponse, error) {
 	return projects, nil
 }
 
-func (e *Extractor) GetAllIssues(projectKey string) ([]jiramodels.Issue, error) {
-	var allIssues []jiramodels.Issue
+func (e *Extractor) GetAllIssues(ctx context.Context, projectKey string) ([]jiramodels.Issue, error) {
+	pool := workers.NewPool(
+		e.threadCount,
+		e.client,
+		e.retryConfig,
+		e.maxResults,
+	)
 
-	startAt := 0
+	logger.Info("extractor: start parallel fetch for project %q with %d workers",
+		projectKey, e.threadCount)
 
-	for {
-		var batch *jiramodels.IssueSearchResponse
-
-		err := jiraclient.WithRetry(e.retryConfig, func() error {
-			var err error
-
-			batch, err = e.client.GetIssuesByProject(projectKey, startAt, e.maxResults)
-			if err != nil {
-				return fmt.Errorf("client.GetIssuesByProject: %w", err)
-			}
-
-			return nil
-		})
-		if err != nil {
-			return nil, fmt.Errorf("extractor: GetAllIssues at startAt=%d: %w", startAt, err)
-		}
-
-		allIssues = append(allIssues, batch.Issues...)
-
-		startAt += len(batch.Issues)
-		if startAt >= batch.Total {
-			break
-		}
+	issues, err := pool.Run(ctx, projectKey)
+	if err != nil {
+		return nil, fmt.Errorf("extractor: GetAllIssues: %w", err)
 	}
 
-	return allIssues, nil
+	logger.Info("extractor: fetched %d issues for project %q",
+		len(issues), projectKey)
+
+	return issues, nil
 }
