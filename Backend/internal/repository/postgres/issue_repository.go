@@ -3,6 +3,7 @@ package postgres
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/microservices-development-hse/backend/internal/models"
 	"github.com/sirupsen/logrus"
@@ -111,6 +112,7 @@ func (r *IssueRepository) UpdateIssueWithHistory(issue *models.Issue, fromStatus
 				IssueID:    issue.ID,
 				FromStatus: fromStatus,
 				ToStatus:   issue.Status,
+				ChangeTime: time.Now(),
 			}
 			if err := tx.Create(&change).Error; err != nil {
 				return fmt.Errorf("failed to create status change record: %w", err)

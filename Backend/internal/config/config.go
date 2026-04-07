@@ -13,9 +13,10 @@ var errReadConfig = errors.New("failed to read config file")
 var errParseConfig = errors.New("failed to parse config file")
 
 type Config struct {
-	DBSettings      DBConfig      `yaml:"DBSettings" validate:"required"`
-	ProgramSettings ProgramConfig `yaml:"ProgramSettings" validate:"required"`
-	CorsSettings    CorsSettings  `yaml:"CorsSettings"`
+	DBSettings       DBConfig               `yaml:"DBSettings" validate:"required"`
+	ProgramSettings  ProgramConfig          `yaml:"ProgramSettings" validate:"required"`
+	ExternalServices ExternalServicesConfig `yaml:"ExternalServices"`
+	CorsSettings     CorsSettings           `yaml:"CorsSettings"`
 }
 
 type CorsSettings struct {
@@ -37,6 +38,10 @@ type ProgramConfig struct {
 	BindPort         int    `yaml:"bindPort" validate:"required,gt=0,lte=65535"`
 	ResourceTimeout  int    `yaml:"resourceTimeout" validate:"required,gt=0"`
 	AnalyticsTimeout int    `yaml:"analyticsTimeout" validate:"required,gt=0"`
+}
+
+type ExternalServicesConfig struct {
+	ConnectorURL string `yaml:"connectorURL" validate:"required"`
 }
 
 func LoadConfig(path string) (*Config, error) {

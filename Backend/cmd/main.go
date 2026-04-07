@@ -28,7 +28,7 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	services := service.InitializeServices(repos)
+	services := service.InitializeServices(repos, cfg.ExternalServices.ConnectorURL)
 	handlers := handler.InitializeHandlers(services)
 
 	r := handler.NewRouter(cfg, handlers)
