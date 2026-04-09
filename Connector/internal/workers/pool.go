@@ -34,7 +34,6 @@ func (p *Pool) Run(ctx context.Context, projectKey string) ([]jiramodels.Issue, 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	// узнаём total
 	firstBatch, err := p.client.GetIssuesByProject(projectKey, 0, 1)
 	if err != nil {
 		return nil, fmt.Errorf("get total: %w", err)
@@ -47,7 +46,6 @@ func (p *Pool) Run(ctx context.Context, projectKey string) ([]jiramodels.Issue, 
 
 	var wg sync.WaitGroup
 
-	// воркеры
 	for i := 0; i < p.threadCount; i++ {
 		w := NewWorker(
 			ctx,
@@ -61,34 +59,37 @@ func (p *Pool) Run(ctx context.Context, projectKey string) ([]jiramodels.Issue, 
 		)
 
 		wg.Add(1)
+
 		go func() {
 			defer wg.Done()
+
 			w.Start()
 		}()
 	}
 
-	// задачи (страницы)
 	for start := 0; start < total; start += p.maxResults {
 		select {
 		case <-ctx.Done():
 			close(jobs)
 			wg.Wait()
-			return nil, ctx.Err()
+
+			return nil, fmt.Errorf("context cancelled while creating jobs: %w", ctx.Err())
 		default:
 			jobs <- Job{StartAt: start}
 		}
 	}
+
 	close(jobs)
 
-	// сбор результатов
 	var allIssues []jiramodels.Issue
 
 	for i := 0; i < total/p.maxResults+1; i++ {
 		res := <-results
 
 		if res.Err != nil {
-			cancel()  // останавливаем всех воркеров
-			wg.Wait() // ждём их завершения
+			cancel()
+			wg.Wait()
+
 			return nil, res.Err
 		}
 

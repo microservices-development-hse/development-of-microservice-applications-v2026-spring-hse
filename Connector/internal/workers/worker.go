@@ -77,7 +77,6 @@ func (w *Worker) Start() {
 
 				return nil
 			})
-
 			if err != nil {
 				w.results <- Result{Err: err}
 				return
