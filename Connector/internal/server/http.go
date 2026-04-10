@@ -16,11 +16,11 @@ type Server struct {
 	httpServer *http.Server
 }
 
-func New(port int, client *jiraclient.Client, retryConfig jiraclient.RetryConfig, maxResults int, db *sql.DB) *Server {
+func New(port int, client *jiraclient.Client, retryConfig jiraclient.RetryConfig, maxResults int, db *sql.DB, threadCount int) *Server {
 	mux := http.NewServeMux()
 
-	mux.Handle("/projects", handlers.NewProjectsHandler(client, retryConfig, maxResults))
-	mux.Handle("/updateProject", handlers.NewUpdateProjectHandler(client, retryConfig, maxResults, db))
+	mux.Handle("/projects", handlers.NewProjectsHandler(client, retryConfig, maxResults, threadCount))
+	mux.Handle("/updateProject", handlers.NewUpdateProjectHandler(client, retryConfig, maxResults, db, threadCount))
 
 	return &Server{
 		httpServer: &http.Server{

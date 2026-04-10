@@ -17,9 +17,14 @@ type UpdateProjectHandler struct {
 	loader    *etlprocess.Loader
 }
 
-func NewUpdateProjectHandler(client *jiraclient.Client, retryConfig jiraclient.RetryConfig, maxResults int, db *sql.DB) *UpdateProjectHandler {
+func NewUpdateProjectHandler(client *jiraclient.Client, retryConfig jiraclient.RetryConfig, maxResults int, db *sql.DB, threadCount int) *UpdateProjectHandler {
 	return &UpdateProjectHandler{
-		extractor: etlprocess.NewExtractor(client, retryConfig, maxResults),
+		extractor: etlprocess.NewExtractor(
+			client,
+			retryConfig,
+			maxResults,
+			threadCount,
+		),
 		loader: etlprocess.NewLoader(
 			db,
 			database.StmtUpsertProject,
@@ -46,7 +51,7 @@ func (h *UpdateProjectHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 	logger.Info("updateProject: fetching issues for project %q", projectKey)
 
-	jiraIssues, err := h.extractor.GetAllIssues(projectKey)
+	jiraIssues, err := h.extractor.GetAllIssues(ctx, projectKey)
 	if err != nil {
 		logger.Error("updateProject: extract issues failed: %v", err)
 		http.Error(w, "failed to fetch issues from Jira", http.StatusBadGateway)

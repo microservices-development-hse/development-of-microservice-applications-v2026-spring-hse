@@ -32,9 +32,9 @@ type ProjectsHandler struct {
 	extractor *etlprocess.Extractor
 }
 
-func NewProjectsHandler(client *jiraclient.Client, retryConfig jiraclient.RetryConfig, maxResults int) *ProjectsHandler {
+func NewProjectsHandler(client *jiraclient.Client, retryConfig jiraclient.RetryConfig, maxResults int, threadCount int) *ProjectsHandler {
 	return &ProjectsHandler{
-		extractor: etlprocess.NewExtractor(client, retryConfig, maxResults),
+		extractor: etlprocess.NewExtractor(client, retryConfig, maxResults, threadCount),
 	}
 }
 

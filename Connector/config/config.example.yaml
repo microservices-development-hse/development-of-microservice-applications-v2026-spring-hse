@@ -1,6 +1,6 @@
 ProgramSettings:
   jiraUrl: "https://issues.apache.org/jira"
-  threadCount: 1
+  threadCount: 25
   issueInOneRequest: 50
   minTimeSleep: 1000
   maxTimeSleep: 60000
