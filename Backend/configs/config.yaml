@@ -11,6 +11,9 @@ DBSettings:
   dbPort: 5432
   dbName: "testdb"
 
+ExternalServices:
+  connectorURL: "http://localhost:8081"
+
 CorsSettings:
   allowedOrigins: 
     - "http://localhost:4200"

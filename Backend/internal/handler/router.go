@@ -47,6 +47,11 @@ func NewRouter(cfg *config.Config, h *Handlers) *chi.Mux {
 			r.Get("/{key}", h.Issue.GetIssueByKey)
 		})
 
+		r.Route("/connector", func(r chi.Router) {
+			r.Get("/projects", h.Connector.GetExternalProjects)
+			r.Post("/import", h.Connector.StartImport)
+		})
+
 		r.Route("/sync", func(r chi.Router) {
 			r.Post("/issue", h.Issue.SyncIssue)
 		})

@@ -18,7 +18,7 @@ func main() {
 		return
 	}
 
-	cfg, err := config.LoadConfig("../configs/config.yaml")
+	cfg, err := config.LoadConfig("configs/config.yaml")
 	if err != nil {
 		logrus.Fatalf("Config error: %v", err)
 	}
@@ -28,7 +28,7 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	services := service.InitializeServices(repos)
+	services := service.InitializeServices(repos, cfg.ExternalServices.ConnectorURL)
 	handlers := handler.InitializeHandlers(services)
 
 	r := handler.NewRouter(cfg, handlers)
