@@ -2,6 +2,8 @@ package postgres
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	"github.com/microservices-development-hse/backend/internal/models"
 	"gorm.io/gorm"
@@ -27,7 +29,11 @@ func (r *AnalyticsRepository) GetLatestSnapshot(ctx context.Context, projectID i
 		Order("creation_time DESC").
 		First(&snapshot).Error
 	if err != nil {
-		return nil, err
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, fmt.Errorf("database error: %w", err)
 	}
 
 	return &snapshot, nil

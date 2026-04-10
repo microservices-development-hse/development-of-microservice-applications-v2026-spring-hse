@@ -68,6 +68,14 @@ CREATE INDEX "idx_issues_project_priority" ON issues ("project_id", "priority");
 
 CREATE INDEX "idx_status_changes_issue_id" ON status_changes ("issue_id");
 
+CREATE INDEX "idx_issues_analytics_lead_time" ON issues ("project_id", "closed_time") 
+WHERE "closed_time" IS NOT NULL;
+
+CREATE INDEX "idx_issues_analytics_active" ON issues ("project_id", "status") 
+WHERE "closed_time" IS NULL;
+
+CREATE INDEX "idx_status_changes_composite" ON status_changes ("issue_id", "change_time");
+
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO pguser;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO pguser;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO pguser;
