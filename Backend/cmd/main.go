@@ -18,7 +18,7 @@ func main() {
 		return
 	}
 
-	cfg, err := config.LoadConfig("../configs/config.yaml")
+	cfg, err := config.LoadConfig("configs/config.yaml")
 	if err != nil {
 		logrus.Fatalf("Config error: %v", err)
 	}
