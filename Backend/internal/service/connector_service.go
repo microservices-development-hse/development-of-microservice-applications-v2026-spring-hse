@@ -29,14 +29,16 @@ func (s *connectorService) FetchRemoteProjects() ([]models.Project, error) {
 		return nil, fmt.Errorf("connector unavailable: %w", err)
 	}
 
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	var data struct {
 		Projects []models.Project `json:"projects"`
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to decode projects: %w", err)
 	}
 
 	return data.Projects, nil
@@ -50,7 +52,9 @@ func (s *connectorService) TriggerProjectImport(projectKey string) error {
 		return fmt.Errorf("failed to trigger import: %w", err)
 	}
 
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("connector returned error: %d", resp.StatusCode)
