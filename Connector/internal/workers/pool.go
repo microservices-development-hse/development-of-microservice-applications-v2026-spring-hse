@@ -16,6 +16,10 @@ type Pool struct {
 	maxResults  int
 }
 
+type PoolInterface interface {
+	Run(ctx context.Context, projectKey string) ([]jiramodels.Issue, error)
+}
+
 func NewPool(
 	threadCount int,
 	client jiraclient.ClientInterface,

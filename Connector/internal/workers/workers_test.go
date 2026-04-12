@@ -3,6 +3,7 @@ package workers
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
 	"time"
 
@@ -11,10 +12,30 @@ import (
 )
 
 type mockClient struct {
-	getIssuesFunc func(projectKey string, startAt, maxResults int) (*jiramodels.IssueSearchResponse, error)
+	getProjectsFunc func() ([]jiramodels.ProjectResponse, error)
+	getIssuesFunc   func(projectKey string, startAt, maxResults int) (*jiramodels.IssueSearchResponse, error)
+	mu              sync.Mutex
+	callCount       int
+}
+
+func (m *mockClient) GetProjects() ([]jiramodels.ProjectResponse, error) {
+	m.mu.Lock()
+
+	defer m.mu.Unlock()
+
+	if m.getProjectsFunc != nil {
+		return m.getProjectsFunc()
+	}
+
+	return []jiramodels.ProjectResponse{}, nil
 }
 
 func (m *mockClient) GetIssuesByProject(projectKey string, startAt, maxResults int) (*jiramodels.IssueSearchResponse, error) {
+	m.mu.Lock()
+
+	defer m.mu.Unlock()
+
+	m.callCount++
 	if m.getIssuesFunc != nil {
 		return m.getIssuesFunc(projectKey, startAt, maxResults)
 	}
@@ -34,7 +55,6 @@ func TestNewPool(t *testing.T) {
 	cfg := retryConfig()
 
 	pool := NewPool(3, client, cfg, 100)
-
 	if pool == nil {
 		t.Fatal("NewPool returned nil")
 	}
@@ -55,6 +75,10 @@ func TestPool_Run_Success(t *testing.T) {
 
 			switch startAt {
 			case 0:
+				if maxResults == 1 {
+					return &jiramodels.IssueSearchResponse{Total: 4, Issues: []jiramodels.Issue{}}, nil
+				}
+
 				issues = []jiramodels.Issue{{Key: "TEST-1"}, {Key: "TEST-2"}}
 			case 2:
 				issues = []jiramodels.Issue{{Key: "TEST-3"}, {Key: "TEST-4"}}
@@ -62,10 +86,7 @@ func TestPool_Run_Success(t *testing.T) {
 				issues = []jiramodels.Issue{}
 			}
 
-			return &jiramodels.IssueSearchResponse{
-				Total:  4,
-				Issues: issues,
-			}, nil
+			return &jiramodels.IssueSearchResponse{Total: 4, Issues: issues}, nil
 		},
 	}
 
@@ -121,6 +142,10 @@ func TestPool_Run_EmptyProject(t *testing.T) {
 func TestPool_Run_SinglePage(t *testing.T) {
 	client := &mockClient{
 		getIssuesFunc: func(projectKey string, startAt, maxResults int) (*jiramodels.IssueSearchResponse, error) {
+			if startAt == 0 && maxResults == 1 {
+				return &jiramodels.IssueSearchResponse{Total: 3, Issues: []jiramodels.Issue{}}, nil
+			}
+
 			return &jiramodels.IssueSearchResponse{
 				Total: 3,
 				Issues: []jiramodels.Issue{
@@ -167,15 +192,47 @@ func TestPool_Run_WorkerError(t *testing.T) {
 	}
 }
 
-func TestPool_Run_ContextCancel(t *testing.T) {
+func TestPool_Run_MultipleWorkers(t *testing.T) {
 	client := &mockClient{
 		getIssuesFunc: func(projectKey string, startAt, maxResults int) (*jiramodels.IssueSearchResponse, error) {
-			return &jiramodels.IssueSearchResponse{Total: 1000, Issues: []jiramodels.Issue{}}, nil
+			if startAt == 0 && maxResults == 1 {
+				return &jiramodels.IssueSearchResponse{Total: 20, Issues: []jiramodels.Issue{}}, nil
+			}
+
+			issues := make([]jiramodels.Issue, maxResults)
+
+			for i := 0; i < maxResults; i++ {
+				issues[i] = jiramodels.Issue{Key: "TEST"}
+			}
+
+			return &jiramodels.IssueSearchResponse{Total: 20, Issues: issues}, nil
+		},
+	}
+
+	pool := NewPool(4, client, retryConfig(), 5)
+	ctx := context.Background()
+
+	issues, err := pool.Run(ctx, "TEST")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(issues) != 20 {
+		t.Errorf("expected 20 issues, got %d", len(issues))
+	}
+}
+
+func TestPool_Run_ContextCancelImmediately(t *testing.T) {
+	client := &mockClient{
+		getIssuesFunc: func(projectKey string, startAt, maxResults int) (*jiramodels.IssueSearchResponse, error) {
+			return &jiramodels.IssueSearchResponse{Total: 100, Issues: []jiramodels.Issue{}}, nil
 		},
 	}
 
 	pool := NewPool(2, client, retryConfig(), 50)
+
 	ctx, cancel := context.WithCancel(context.Background())
+
 	cancel()
 
 	_, err := pool.Run(ctx, "TEST")
@@ -184,19 +241,16 @@ func TestPool_Run_ContextCancel(t *testing.T) {
 	}
 }
 
-func TestPool_Run_ContextCancelDuringWork(t *testing.T) {
+func TestPool_Run_ContextCancelDuringJobCreation(t *testing.T) {
 	client := &mockClient{
 		getIssuesFunc: func(projectKey string, startAt, maxResults int) (*jiramodels.IssueSearchResponse, error) {
+			time.Sleep(50 * time.Millisecond)
+
 			if startAt == 0 && maxResults == 1 {
 				return &jiramodels.IssueSearchResponse{Total: 100, Issues: []jiramodels.Issue{}}, nil
 			}
 
-			time.Sleep(200 * time.Millisecond)
-
-			return &jiramodels.IssueSearchResponse{
-				Total:  100,
-				Issues: []jiramodels.Issue{{Key: "TEST-1"}},
-			}, nil
+			return &jiramodels.IssueSearchResponse{Total: 100, Issues: []jiramodels.Issue{{Key: "TEST-1"}}}, nil
 		},
 	}
 
@@ -204,7 +258,7 @@ func TestPool_Run_ContextCancelDuringWork(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	go func() {
-		time.Sleep(50 * time.Millisecond)
+		time.Sleep(30 * time.Millisecond)
 		cancel()
 	}()
 
@@ -222,7 +276,6 @@ func TestNewWorker(t *testing.T) {
 	cfg := retryConfig()
 
 	w := NewWorker(ctx, 5, jobs, results, client, cfg, "PROJ", 100)
-
 	if w.id != 5 {
 		t.Errorf("expected id 5, got %d", w.id)
 	}
@@ -304,6 +357,52 @@ func TestWorker_Start_HandlesError(t *testing.T) {
 	}
 }
 
+func TestWorker_Start_WithRetrySuccess(t *testing.T) {
+	jobs := make(chan Job, 1)
+	results := make(chan Result, 1)
+
+	callCount := 0
+	client := &mockClient{
+		getIssuesFunc: func(projectKey string, startAt, maxResults int) (*jiramodels.IssueSearchResponse, error) {
+			callCount++
+			if callCount == 1 {
+				return nil, errors.New("temporary error")
+			}
+
+			return &jiramodels.IssueSearchResponse{
+				Total:  1,
+				Issues: []jiramodels.Issue{{Key: "PROJ-1"}},
+			}, nil
+		},
+	}
+
+	ctx := context.Background()
+	w := NewWorker(ctx, 1, jobs, results, client, jiraclient.RetryConfig{MinTimeSleep: 1, MaxTimeSleep: 2}, "PROJ", 50)
+
+	jobs <- Job{StartAt: 0}
+
+	close(jobs)
+
+	go w.Start()
+
+	select {
+	case res := <-results:
+		if res.Err != nil {
+			t.Errorf("unexpected error: %v", res.Err)
+		}
+
+		if len(res.Issues) != 1 {
+			t.Errorf("expected 1 issue, got %d", len(res.Issues))
+		}
+
+		if callCount < 2 {
+			t.Errorf("expected retry, got %d calls", callCount)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("timeout waiting for result")
+	}
+}
+
 func TestWorker_Start_ContextCancel(t *testing.T) {
 	jobs := make(chan Job)
 	results := make(chan Result)
@@ -317,7 +416,6 @@ func TestWorker_Start_ContextCancel(t *testing.T) {
 
 	go func() {
 		w.Start()
-
 		close(done)
 	}()
 
