@@ -12,14 +12,20 @@ import (
 )
 
 type Extractor struct {
-	client      *jiraclient.Client
+	client      jiraclient.ClientInterface
 	retryConfig jiraclient.RetryConfig
 	maxResults  int
 	threadCount int
+	poolFactory func() workers.PoolInterface
+}
+
+type ExtractorInterface interface {
+	GetProjects() ([]jiramodels.ProjectResponse, error)
+	GetAllIssues(ctx context.Context, projectKey string) ([]jiramodels.Issue, error)
 }
 
 func NewExtractor(
-	client *jiraclient.Client,
+	client jiraclient.ClientInterface,
 	retryConfig jiraclient.RetryConfig,
 	maxResults int,
 	threadCount int,
@@ -29,6 +35,14 @@ func NewExtractor(
 		retryConfig: retryConfig,
 		maxResults:  maxResults,
 		threadCount: threadCount,
+		poolFactory: func() workers.PoolInterface {
+			return workers.NewPool(
+				threadCount,
+				client,
+				retryConfig,
+				maxResults,
+			)
+		},
 	}
 }
 
@@ -53,12 +67,7 @@ func (e *Extractor) GetProjects() ([]jiramodels.ProjectResponse, error) {
 }
 
 func (e *Extractor) GetAllIssues(ctx context.Context, projectKey string) ([]jiramodels.Issue, error) {
-	pool := workers.NewPool(
-		e.threadCount,
-		e.client,
-		e.retryConfig,
-		e.maxResults,
-	)
+	pool := e.poolFactory()
 
 	logger.Info("extractor: start parallel fetch for project %q with %d workers",
 		projectKey, e.threadCount)
