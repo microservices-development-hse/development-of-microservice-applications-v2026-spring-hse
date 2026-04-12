@@ -41,7 +41,11 @@ func TestBuildURL(t *testing.T) {
 func TestGetProjects_Success(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`[{"id":"1","key":"TEST","name":"Test","self":"url"}]`))
+
+		_, err := w.Write([]byte(`[{"id":"1","key":"TEST","name":"Test","self":"url"}]`))
+		if err != nil {
+			t.Fatal(err)
+		}
 	}))
 	defer server.Close()
 
@@ -73,7 +77,10 @@ func TestGetProjects_BadStatus(t *testing.T) {
 
 func TestGetProjects_InvalidJSON(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`invalid json`))
+		_, err := w.Write([]byte(`invalid json`))
+		if err != nil {
+			t.Fatal(err)
+		}
 	}))
 	defer server.Close()
 
@@ -98,7 +105,11 @@ func TestGetIssuesByProject_Success(t *testing.T) {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"total":1,"issues":[]}`))
+
+		_, err := w.Write([]byte(`{"total":1,"issues":[]}`))
+		if err != nil {
+			t.Fatal(err)
+		}
 	}))
 	defer server.Close()
 
@@ -139,7 +150,10 @@ func TestGetIssuesByProject_BadStatus(t *testing.T) {
 
 func TestGetIssuesByProject_InvalidJSON(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`invalid json`))
+		_, err := w.Write([]byte(`invalid json`))
+		if err != nil {
+			t.Fatal(err)
+		}
 	}))
 	defer server.Close()
 
@@ -164,7 +178,6 @@ func TestWithRetry_SuccessFirstTry(t *testing.T) {
 		called++
 		return nil
 	})
-
 	if err != nil {
 		t.Fatalf("unexpected error")
 	}
@@ -184,9 +197,9 @@ func TestWithRetry_RetryThenSuccess(t *testing.T) {
 		if called < 2 {
 			return errors.New("temporary error")
 		}
+
 		return nil
 	})
-
 	if err != nil {
 		t.Fatalf("unexpected error")
 	}
@@ -205,7 +218,6 @@ func TestWithRetry_StopOn4xx(t *testing.T) {
 		called++
 		return errors.New("unexpected status 400")
 	})
-
 	if err == nil {
 		t.Fatalf("expected error")
 	}
@@ -221,7 +233,6 @@ func TestWithRetry_ExceedsLimit(t *testing.T) {
 	err := WithRetry(cfg, func() error {
 		return errors.New("fail")
 	})
-
 	if err == nil {
 		t.Fatalf("expected error")
 	}
@@ -231,7 +242,6 @@ func TestWithRetry_ExceedsLimit(t *testing.T) {
 // ===================== EDGE =====================
 //
 
-// проверяем что sleep реально увеличивается (косвенно)
 func TestWithRetry_BackoffGrowth(t *testing.T) {
 	cfg := RetryConfig{MinTimeSleep: 1, MaxTimeSleep: 4}
 
@@ -246,4 +256,60 @@ func TestWithRetry_BackoffGrowth(t *testing.T) {
 	if elapsed <= 0 {
 		t.Fatalf("expected some delay")
 	}
+}
+
+//
+// ===================== COVERAGE FOR ERROR RETURNS =====================
+//
+
+func TestGetProjects_RequestCreationError(t *testing.T) {
+	client := NewClient("http://example.com")
+	client.baseURL = "http://\x7fexample.com"
+
+	_, err := client.GetProjects()
+	if err == nil {
+		t.Fatal("expected error from invalid URL")
+	}
+}
+
+func TestGetProjects_DoRequestError(t *testing.T) {
+	client := NewClient("http://example.com")
+	client.httpClient = &http.Client{
+		Transport: &errorRoundTripper{},
+	}
+
+	_, err := client.GetProjects()
+	if err == nil {
+		t.Fatal("expected error from httpClient.Do")
+	}
+}
+
+func TestGetIssuesByProject_URLCreationError(t *testing.T) {
+	client := NewClient("http://example.com")
+	client.baseURL = "http://\x7fexample.com"
+
+	_, err := client.GetIssuesByProject("TEST", 0, 50)
+	if err == nil {
+		t.Fatal("expected error from invalid URL")
+	}
+}
+
+func TestGetIssuesByProject_DoRequestError(t *testing.T) {
+	client := NewClient("http://example.com")
+	client.httpClient = &http.Client{
+		Transport: &errorRoundTripper{},
+	}
+
+	_, err := client.GetIssuesByProject("TEST", 0, 50)
+	if err == nil {
+		t.Fatal("expected error from httpClient.Do")
+	}
+}
+
+// // ===================== HELPER: errorRoundTripper =====================
+
+type errorRoundTripper struct{}
+
+func (e *errorRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	return nil, errors.New("network error")
 }
