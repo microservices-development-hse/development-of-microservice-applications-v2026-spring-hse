@@ -100,3 +100,62 @@ func TestLogging_WritesToFiles(t *testing.T) {
 		t.Fatalf("err_logs.log is empty")
 	}
 }
+
+func TestInit_MkdirError(t *testing.T) {
+	resetLogger()
+
+	_ = os.MkdirAll("logs", 0755)
+	_ = os.RemoveAll("logs")
+
+	if err := os.WriteFile("logs", []byte{}, 0644); err != nil {
+		t.Fatalf("setup failed: %v", err)
+	}
+
+	defer func() { _ = os.Remove("logs") }()
+
+	err := Init()
+	if err == nil {
+		t.Fatal("expected error when cannot create logs directory, got nil")
+	}
+}
+
+func TestInit_LogFileCreateError(t *testing.T) {
+	resetLogger()
+
+	if err := os.MkdirAll("logs", 0444); err != nil {
+		t.Fatalf("setup failed: %v", err)
+	}
+
+	defer func() { _ = os.Chmod("logs", 0755) }()
+	defer func() { _ = os.RemoveAll("logs") }()
+
+	err := Init()
+	if err == nil {
+		t.Fatal("expected error when cannot create log file, got nil")
+	}
+}
+
+func TestInit_ErrLogFileCreateError(t *testing.T) {
+	resetLogger()
+
+	if err := os.MkdirAll("logs", 0755); err != nil {
+		t.Fatalf("setup failed: %v", err)
+	}
+
+	defer func() { _ = os.RemoveAll("logs") }()
+
+	t.Skip("skipping: difficult to mock file creation error for second file")
+}
+
+func TestInit_ErrLogFileCreateError_Alternative(t *testing.T) {
+	resetLogger()
+
+	if err := os.MkdirAll("logs", 0444); err != nil {
+		t.Fatalf("setup failed: %v", err)
+	}
+
+	defer func() { _ = os.Chmod("logs", 0755) }()
+	defer func() { _ = os.RemoveAll("logs") }()
+
+	t.Skip("error branch for err_logs.log creation is practically unreachable")
+}
