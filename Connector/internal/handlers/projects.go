@@ -29,7 +29,11 @@ type ProjectsResponse struct {
 }
 
 type ProjectsHandler struct {
-	extractor *etlprocess.Extractor
+	extractor etlprocess.ExtractorInterface
+}
+
+func NewProjectsHandlerWithExtractor(extractor etlprocess.ExtractorInterface) *ProjectsHandler {
+	return &ProjectsHandler{extractor: extractor}
 }
 
 func NewProjectsHandler(client *jiraclient.Client, retryConfig jiraclient.RetryConfig, maxResults int, threadCount int) *ProjectsHandler {
