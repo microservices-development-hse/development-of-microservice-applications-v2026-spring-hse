@@ -66,7 +66,7 @@ func (s *connectorService) TriggerProjectImport(projectKey string) error {
 	}
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
-			return fmt.Errorf("failed to close response body: %v", err)
+			fmt.Println("error closing body:", err)
 		}
 	}()
 
