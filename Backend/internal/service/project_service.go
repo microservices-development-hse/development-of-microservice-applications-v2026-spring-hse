@@ -10,7 +10,7 @@ import (
 type ProjectService interface {
 	GetProjectsList(limit, page int) ([]models.Project, int, error)
 	GetProjectDetails(id int) (*models.Project, map[string]interface{}, error)
-	CreateProject(key, title string) (*models.Project, error)
+	CreateProject(key, title, url string) (*models.Project, error)
 	UpdateProject(id int, key, title string) (*models.Project, error)
 	DeleteProject(id int) error
 }
@@ -23,10 +23,11 @@ func NewProjectService(repo models.ProjectRepository) ProjectService {
 	return &projectService{repo: repo}
 }
 
-func (s *projectService) CreateProject(key, title string) (*models.Project, error) {
+func (s *projectService) CreateProject(key, title, url string) (*models.Project, error) {
 	project := &models.Project{
 		Key:   key,
 		Title: title,
+		URL:   url,
 	}
 
 	if err := s.repo.CreateProject(project); err != nil {
