@@ -47,28 +47,28 @@ func (s *connectorService) FetchRemoteProjects() ([]models.Project, error) {
 
 func (s *connectorService) TriggerProjectImport(projectKey string) error {
 	body, err := json.Marshal(map[string]string{
-  		"project_key": projectKey,
- 	})
+		"project_key": projectKey,
+	})
 	if err != nil {
-  		return fmt.Errorf("failed to marshal import request: %w", err)
- 	}
+		return fmt.Errorf("failed to marshal import request: %w", err)
+	}
 
- 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/import", s.connectorURL), bytes.NewBuffer(body))
- 	if err != nil {
-  		return fmt.Errorf("failed to create import request: %w", err)
- 	}
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/import", s.connectorURL), bytes.NewBuffer(body))
+	if err != nil {
+		return fmt.Errorf("failed to create import request: %w", err)
+	}
 
- 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Type", "application/json")
 
- 	resp, err := http.DefaultClient.Do(req)
- 	if err != nil {
-  		return fmt.Errorf("failed to trigger import: %w", err)
- 	}
- 	defer resp.Body.Close()
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to trigger import: %w", err)
+	}
+	defer resp.Body.Close()
 
- 	if resp.StatusCode != http.StatusOK {
-  		return fmt.Errorf("connector returned error: %d", resp.StatusCode)
- 	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("connector returned error: %d", resp.StatusCode)
+	}
 
- 	return nil
+	return nil
 }
