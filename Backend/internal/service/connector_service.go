@@ -64,7 +64,11 @@ func (s *connectorService) TriggerProjectImport(projectKey string) error {
 	if err != nil {
 		return fmt.Errorf("failed to trigger import: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			return fmt.Errorf("failed to close response body: %v", err)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("connector returned error: %d", resp.StatusCode)
