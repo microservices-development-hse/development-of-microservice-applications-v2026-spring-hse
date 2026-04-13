@@ -64,6 +64,7 @@ func (s *connectorService) TriggerProjectImport(projectKey string) error {
 	if err != nil {
 		return fmt.Errorf("failed to trigger import: %w", err)
 	}
+
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
 			fmt.Println("error closing body:", err)
