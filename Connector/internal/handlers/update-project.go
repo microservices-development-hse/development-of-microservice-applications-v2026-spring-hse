@@ -13,8 +13,15 @@ import (
 )
 
 type UpdateProjectHandler struct {
-	extractor *etlprocess.Extractor
-	loader    *etlprocess.Loader
+	extractor etlprocess.ExtractorInterface
+	loader    etlprocess.LoaderInterface
+}
+
+func NewUpdateProjectHandlerWithDeps(extractor etlprocess.ExtractorInterface, loader etlprocess.LoaderInterface) *UpdateProjectHandler {
+	return &UpdateProjectHandler{
+		extractor: extractor,
+		loader:    loader,
+	}
 }
 
 func NewUpdateProjectHandler(client *jiraclient.Client, retryConfig jiraclient.RetryConfig, maxResults int, db *sql.DB, threadCount int) *UpdateProjectHandler {

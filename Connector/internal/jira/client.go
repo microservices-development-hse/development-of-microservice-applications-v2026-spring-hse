@@ -3,7 +3,14 @@ package jira
 import (
 	"net/http"
 	"time"
+
+	models "github.com/microservices-development-hse/connector/internal/models/jira"
 )
+
+type ClientInterface interface {
+	GetIssuesByProject(projectKey string, startAt, maxResults int) (*models.IssueSearchResponse, error)
+	GetProjects() ([]models.ProjectResponse, error)
+}
 
 type Client struct {
 	baseURL    string
