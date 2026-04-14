@@ -1,12 +1,10 @@
 package handler
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/microservices-development-hse/backend/internal/models"
 	"github.com/microservices-development-hse/backend/internal/service"
 	"github.com/sirupsen/logrus"
 )
@@ -75,23 +73,23 @@ func (h *IssueHandler) GetIssueByKey(w http.ResponseWriter, r *http.Request) {
 	sendJSON(w, http.StatusOK, issue)
 }
 
-func (h *IssueHandler) SyncIssue(w http.ResponseWriter, r *http.Request) {
-	var payload struct {
-		Issue  models.Issue  `json:"issue"`
-		Author models.Author `json:"author"`
-	}
+// func (h *IssueHandler) SyncIssue(w http.ResponseWriter, r *http.Request) {
+// 	var payload struct {
+// 		Issue  models.Issue  `json:"issue"`
+// 		Author models.Author `json:"author"`
+// 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body")
-		return
-	}
+// 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+// 		sendError(w, http.StatusBadRequest, "Invalid request body")
+// 		return
+// 	}
 
-	if err := h.service.SyncIssue(&payload.Issue, &payload.Author); err != nil {
-		logrus.Errorf("Handler: sync failed: %v", err)
-		sendError(w, http.StatusInternalServerError, "Sync failed")
+// 	if err := h.service.SyncIssue(&payload.Issue, &payload.Author); err != nil {
+// 		logrus.Errorf("Handler: sync failed: %v", err)
+// 		sendError(w, http.StatusInternalServerError, "Sync failed")
 
-		return
-	}
+// 		return
+// 	}
 
-	sendJSON(w, http.StatusOK, map[string]string{"status": "success"})
-}
+// 	sendJSON(w, http.StatusOK, map[string]string{"status": "success"})
+// }

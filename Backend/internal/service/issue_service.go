@@ -10,7 +10,7 @@ import (
 type IssueService interface {
 	GetIssuesByProject(projectID, limit, page int) ([]models.Issue, int, error)
 	GetIssueDetails(key string) (*models.Issue, error)
-	SyncIssue(issue *models.Issue, authorData *models.Author) error
+	// SyncIssue(issue *models.Issue, authorData *models.Author) error
 }
 
 type issueService struct {
@@ -58,45 +58,45 @@ func (s *issueService) GetIssueDetails(key string) (*models.Issue, error) {
 	return issue, nil
 }
 
-func (s *issueService) SyncIssue(issue *models.Issue, authorData *models.Author) error {
-	if authorData != nil {
-		author, err := s.authorRepo.GetAuthorByExternalID(authorData.ExternalID)
-		if err != nil {
-			return fmt.Errorf("failed to sync author during issue sync: %w", err)
-		}
+// func (s *issueService) SyncIssue(issue *models.Issue, authorData *models.Author) error {
+// 	if authorData != nil {
+// 		author, err := s.authorRepo.GetAuthorByExternalID(authorData.ExternalID)
+// 		if err != nil {
+// 			return fmt.Errorf("failed to sync author during issue sync: %w", err)
+// 		}
 
-		if author == nil {
-			if err := s.authorRepo.CreateAuthor(authorData); err != nil {
-				return fmt.Errorf("failed to create author: %w", err)
-			}
+// 		if author == nil {
+// 			if err := s.authorRepo.CreateAuthor(authorData); err != nil {
+// 				return fmt.Errorf("failed to create author: %w", err)
+// 			}
 
-			issue.AuthorID = authorData.ID
-		} else {
-			issue.AuthorID = author.ID
-		}
-	}
+// 			issue.AuthorID = authorData.ID
+// 		} else {
+// 			issue.AuthorID = author.ID
+// 		}
+// 	}
 
-	existingIssue, err := s.issueRepo.GetIssueByExternalID(issue.ExternalID)
-	if err != nil {
-		return fmt.Errorf("failed to check existing issue: %w", err)
-	}
+// 	existingIssue, err := s.issueRepo.GetIssueByExternalID(issue.ExternalID)
+// 	if err != nil {
+// 		return fmt.Errorf("failed to check existing issue: %w", err)
+// 	}
 
-	if existingIssue == nil {
-		if err := s.issueRepo.CreateIssue(issue); err != nil {
-			return fmt.Errorf("failed to create issue: %w", err)
-		}
+// 	if existingIssue == nil {
+// 		if err := s.issueRepo.CreateIssue(issue); err != nil {
+// 			return fmt.Errorf("failed to create issue: %w", err)
+// 		}
 
-		logrus.Infof("Service: issue %s created", issue.Key)
-	} else {
-		oldStatus := existingIssue.Status
-		issue.ID = existingIssue.ID
+// 		logrus.Infof("Service: issue %s created", issue.Key)
+// 	} else {
+// 		oldStatus := existingIssue.Status
+// 		issue.ID = existingIssue.ID
 
-		if err := s.issueRepo.UpdateIssueWithHistory(issue, oldStatus); err != nil {
-			return fmt.Errorf("failed to update issue with history: %w", err)
-		}
+// 		if err := s.issueRepo.UpdateIssueWithHistory(issue, oldStatus); err != nil {
+// 			return fmt.Errorf("failed to update issue with history: %w", err)
+// 		}
 
-		logrus.Infof("Service: issue %s updated (status sync)", issue.Key)
-	}
+// 		logrus.Infof("Service: issue %s updated (status sync)", issue.Key)
+// 	}
 
-	return nil
-}
+// 	return nil
+// }

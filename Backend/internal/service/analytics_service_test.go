@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/microservices-development-hse/backend/internal/models"
 	"github.com/microservices-development-hse/backend/internal/service/mocks"
@@ -160,5 +161,55 @@ func TestAnalyticsService_ProcessErrors(t *testing.T) {
 			Return([]models.DistributionItem{}, errors.New("fail")).Once()
 
 		svc.processDistribution(ctx, 1, "status")
+	})
+}
+
+func TestAnalyticsService_RunFullAnalysis_Success(t *testing.T) {
+	mockRepo := mocks.NewAnalyticsRepository(t)
+	svc := &analyticsService{repo: mockRepo}
+	projectID := 100
+
+	t.Run("Full_flow_covering_all_types", func(t *testing.T) {
+		mockRepo.On("GetTaskStatusDistribution", mock.Anything, projectID).Return([]models.DistributionItem{}, nil).Once()
+		mockRepo.On("GetTaskPriorityDistribution", mock.Anything, projectID).Return([]models.DistributionItem{}, nil).Once()
+
+		mockRepo.On("GetProjectComplexity", mock.Anything, projectID).Return([]models.TaskComplexity{}, nil).Once()
+		mockRepo.On("CalculateTimeInState", mock.Anything, projectID).Return(map[string][]float64{}, nil).Once()
+		mockRepo.On("GetOpenTasksBottlenecks", mock.Anything, projectID).Return([]models.OpenTaskDuration{}, nil).Once()
+
+		mockRepo.On("SaveSnapshot", mock.Anything, mock.Anything).Return(nil).Times(5)
+
+		svc.RunFullAnalysis(projectID)
+
+		time.Sleep(300 * time.Millisecond)
+	})
+}
+
+func TestAnalyticsService_RunFullAnalysis_Errors(t *testing.T) {
+	mockRepo := mocks.NewAnalyticsRepository(t)
+	svc := &analyticsService{repo: mockRepo}
+	projectID := 777
+
+	t.Run("Should handle errors in all goroutines", func(t *testing.T) {
+		mockRepo.On("GetTaskStatusDistribution", mock.Anything, projectID).
+			Return(nil, errors.New("db status fail")).Once()
+
+		mockRepo.On("GetTaskPriorityDistribution", mock.Anything, projectID).
+			Return(nil, errors.New("db priority fail")).Once()
+
+		mockRepo.On("GetProjectComplexity", mock.Anything, projectID).
+			Return(nil, errors.New("db complexity fail")).Once()
+
+		mockRepo.On("CalculateTimeInState", mock.Anything, projectID).
+			Return(nil, errors.New("db lifecycle fail")).Once()
+
+		mockRepo.On("GetOpenTasksBottlenecks", mock.Anything, projectID).
+			Return(nil, errors.New("db bottlenecks fail")).Once()
+
+		svc.RunFullAnalysis(projectID)
+
+		time.Sleep(200 * time.Millisecond)
+
+		mockRepo.AssertExpectations(t)
 	})
 }

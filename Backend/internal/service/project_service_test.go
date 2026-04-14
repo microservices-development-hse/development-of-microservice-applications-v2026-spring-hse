@@ -149,3 +149,35 @@ func TestProjectService_Create(t *testing.T) {
 		assert.Equal(t, expectedProject.Key, res.Key)
 	})
 }
+
+func TestProjectService_EdgeCases(t *testing.T) {
+	mockRepo := mocks.NewProjectRepository(t)
+	svc := NewProjectService(mockRepo)
+
+	t.Run("Update - Repository Error on Final Save", func(t *testing.T) {
+		existing := &models.Project{ID: 1, Key: "OLD"}
+		mockRepo.On("GetProjectByID", 1).Return(existing, nil).Once()
+
+		mockRepo.On("UpdateProject", mock.Anything).Return(errors.New("db write error")).Once()
+
+		_, err := svc.UpdateProject(1, "NEW", "New Title")
+
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "repository error")
+	})
+
+	t.Run("GetDetails - Stats Failure (Graceful)", func(t *testing.T) {
+		id := 5
+		mockProject := &models.Project{ID: id, Title: "Resilient Project"}
+
+		mockRepo.On("GetProjectByID", id).Return(mockProject, nil).Once()
+
+		mockRepo.On("GetDryStatistics", id).Return(nil, errors.New("stats timeout")).Once()
+
+		project, details, err := svc.GetProjectDetails(id)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, project)
+		assert.Empty(t, details)
+	})
+}

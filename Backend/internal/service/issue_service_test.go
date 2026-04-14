@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/microservices-development-hse/backend/internal/models"
@@ -45,25 +46,60 @@ func TestIssueService_GetIssuesByProject(t *testing.T) {
 	})
 }
 
-func TestIssueService_SyncIssue(t *testing.T) {
+func TestIssueService_GetIssueDetails(t *testing.T) {
 	mockIssueRepo := mocks.NewIssueRepository(t)
 	mockAuthorRepo := mocks.NewAuthorRepository(t)
 	svc := NewIssueService(mockIssueRepo, mockAuthorRepo)
 
-	t.Run("Should create author and issue if they don't exist", func(t *testing.T) {
-		authorData := &models.Author{ExternalID: "user-123", Name: "Bob"}
-		issueData := &models.Issue{ExternalID: "ext-999", Summary: "New Task"}
+	t.Run("Success - Issue found", func(t *testing.T) {
+		issueKey := "HSE-101"
+		expectedIssue := &models.Issue{
+			ExternalID: issueKey,
+			Summary:    "Fix assembly bug",
+		}
 
-		mockAuthorRepo.On("GetAuthorByExternalID", "user-123").Return((*models.Author)(nil), nil).Once()
-		mockAuthorRepo.On("CreateAuthor", authorData).Return(nil).Once()
+		mockIssueRepo.On("GetIssueByKey", issueKey).Return(expectedIssue, nil).Once()
 
-		mockIssueRepo.On("GetIssueByExternalID", "ext-999").Return((*models.Issue)(nil), nil).Once()
-		mockIssueRepo.On("CreateIssue", issueData).Return(nil).Once()
-
-		err := svc.SyncIssue(issueData, authorData)
+		result, err := svc.GetIssueDetails(issueKey)
 
 		assert.NoError(t, err)
-		mockAuthorRepo.AssertExpectations(t)
-		mockIssueRepo.AssertExpectations(t)
+		assert.NotNil(t, result)
+		assert.Equal(t, "Fix assembly bug", result.Summary)
+	})
+
+	t.Run("Failure - Repository error", func(t *testing.T) {
+		issueKey := "HSE-ERR"
+
+		mockIssueRepo.On("GetIssueByKey", issueKey).
+			Return((*models.Issue)(nil), errors.New("db connection lost")).Once()
+
+		result, err := svc.GetIssueDetails(issueKey)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "db connection lost")
 	})
 }
+
+// func TestIssueService_SyncIssue(t *testing.T) {
+// 	mockIssueRepo := mocks.NewIssueRepository(t)
+// 	mockAuthorRepo := mocks.NewAuthorRepository(t)
+// 	svc := NewIssueService(mockIssueRepo, mockAuthorRepo)
+
+// 	t.Run("Should create author and issue if they don't exist", func(t *testing.T) {
+// 		authorData := &models.Author{ExternalID: "user-123", Name: "Bob"}
+// 		issueData := &models.Issue{ExternalID: "ext-999", Summary: "New Task"}
+
+// 		mockAuthorRepo.On("GetAuthorByExternalID", "user-123").Return((*models.Author)(nil), nil).Once()
+// 		mockAuthorRepo.On("CreateAuthor", authorData).Return(nil).Once()
+
+// 		mockIssueRepo.On("GetIssueByExternalID", "ext-999").Return((*models.Issue)(nil), nil).Once()
+// 		mockIssueRepo.On("CreateIssue", issueData).Return(nil).Once()
+
+// 		err := svc.SyncIssue(issueData, authorData)
+
+// 		assert.NoError(t, err)
+// 		mockAuthorRepo.AssertExpectations(t)
+// 		mockIssueRepo.AssertExpectations(t)
+// 	})
+// }
