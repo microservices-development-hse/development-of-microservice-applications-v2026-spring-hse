@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -45,15 +46,29 @@ func (s *connectorService) FetchRemoteProjects() ([]models.Project, error) {
 }
 
 func (s *connectorService) TriggerProjectImport(projectKey string) error {
-	url := fmt.Sprintf("%s/updateProject?project=%s", s.connectorURL, projectKey)
+	body, err := json.Marshal(map[string]string{
+		"project_key": projectKey,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to marshal import request: %w", err)
+	}
 
-	resp, err := http.Post(url, "application/json", nil)
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/import", s.connectorURL), bytes.NewBuffer(body))
+	if err != nil {
+		return fmt.Errorf("failed to create import request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to trigger import: %w", err)
 	}
 
 	defer func() {
-		_ = resp.Body.Close()
+		if err := resp.Body.Close(); err != nil {
+			fmt.Println("error closing body:", err)
+		}
 	}()
 
 	if resp.StatusCode != http.StatusOK {

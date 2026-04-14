@@ -21,50 +21,58 @@ export class ComparePageComponent implements OnInit {
   constructor(private configurationService: ConfigurationService, private myProjectService: DatabaseProjectServices, private router: Router) {
     this.webUrl = configurationService.getValue("webUrl")
   }
-
-
+  
   ngOnInit(): void {
     this.myProjectService.getAll().subscribe(projects => {
       this.noProjects = projects.projects.length == 0;
-      console.log(projects)
-      this.projects = projects.projects
-      this.inited = true
-    },
-      error => {
-        // TODO Обработать ошибки от сервера
-      })
+      this.projects = projects.projects.map(p => ({
+        ...p,
+        Existence: false
+      }));
+      this.inited = true;
+    });
+  }
+
+  childOnChecked(project: CheckedProject) {
+    const key =
+      (project as any).Key ??
+      (project as any).key ??
+      (project as any).project ??
+      (project as any).ProjectKey;
+
+    if (!key) {
+      return;
+    }
+
+    if (project.Checked) {
+      this.checked.set(key, project.Checked);
+    } else if (this.checked.has(key)) {
+      this.checked.delete(key);
+    }
   }
 
   onClickCompare(): void {
-    let items:  string[] = []
-    let ids:  number[] = []
-    this.checked.forEach((value: number, key: string) =>{
-      if (value){
-        items.push(key)
-        ids.push(value)
+    const items: string[] = [];
+    const ids: number[] = [];
+  
+    this.projects.forEach(p => {
+      if (this.checked.get(p.Key)) {
+        items.push(p.Key);
+        ids.push(p.Id);
       }
-    })
+    });
 
-    if (items.length > 3){
-      this.showErrorMessage("Максимальное число проектов 3")
-    }else if (items.length <= 1){
-      this.showErrorMessage("Минимальное число проектов для сравнения 2.")
-    }else{
+    if (items.length > 3) {
+      this.showErrorMessage("Максимальное число проектов 3");
+    } else if (items.length <= 1) {
+      this.showErrorMessage("Минимальное число проектов для сравнения 2.");
+    } else {
       this.router.navigate([`/compare-projects`], {
         queryParams: {
           keys: items,
           value: ids
         }
       });
-    }
-
-  }
-
-  childOnChecked(project: CheckedProject){
-    if (project.Checked) {
-      this.checked.set(project.Name, project.Id)
-    }else if (this.checked.has(project.Name)){
-      this.checked.delete(project.Name)
     }
   }
 

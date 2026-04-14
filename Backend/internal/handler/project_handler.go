@@ -21,6 +21,7 @@ func NewProjectHandler(service service.ProjectService) *ProjectHandler {
 type ProjectRequest struct {
 	Key   string `json:"key"`
 	Title string `json:"title"`
+	URL   string `json:"url"`
 }
 
 func (h *ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
@@ -30,7 +31,7 @@ func (h *ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	project, err := h.service.CreateProject(req.Key, req.Title)
+	project, err := h.service.CreateProject(req.Key, req.Title, req.URL)
 	if err != nil {
 		logrus.Errorf("Handler: failed to create project: %v", err)
 		sendError(w, http.StatusInternalServerError, "Could not create project")

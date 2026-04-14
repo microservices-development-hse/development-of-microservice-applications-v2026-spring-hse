@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { IRequest } from '../models/request.model';
 import { IRequestObject } from '../models/requestObj.model';
 
@@ -14,9 +15,28 @@ export class DatabaseProjectServices {
   constructor(private http: HttpClient) {
   }
 
-  getAll(): Observable<IRequest> {
+   getAll(): Observable<IRequest> {
     const url = `${this.urlPath}/projects`;
-    return this.http.get<IRequest>(url).pipe(
+
+    return this.http.get<any>(url).pipe(
+      map((response: any) => {
+        const projects = (response.projects || []).map((p: any) => ({
+          Existence: true,
+          Id: p.id,
+          Key: p.key,
+          Name: p.title,
+          Url: p.url
+        }));
+
+        return {
+          projects,
+          pageInfo: {
+            currentPage: response.pageInfo?.currentPage ?? 1,
+            projectsCount: response.pageInfo?.projectsCount ?? projects.length,
+            pageCount: response.pageInfo?.pageCount ?? 1
+          }
+        };
+      }),
       catchError(err => {
         console.error('DatabaseProjectServices.getAll error', err);
         return throwError(() => err);
@@ -24,9 +44,21 @@ export class DatabaseProjectServices {
     );
   }
 
-  getProjectStatByID(id: string): Observable<IRequestObject> {
-    const url = `${this.urlPath}/projects/${encodeURIComponent(id)}/stat`;
-    return this.http.get<IRequestObject>(url).pipe(
+  getProjectStatByID(id: string): Observable<any> {
+    const url = `${this.urlPath}/projects/${encodeURIComponent(id)}`;
+    return this.http.get<any>(url).pipe(
+      map((response: any) => ({
+        data: {
+          allIssuesCount: response.stats?.total_tasks ?? 0,
+          openIssuesCount: response.stats?.open_tasks ?? 0,
+          closeIssuesCount: response.stats?.closed_tasks ?? 0,
+          reopenedIssuesCount: response.stats?.reopened_tasks ?? 0,
+          resolvedIssuesCount: response.stats?.resolved_tasks ?? 0,
+          progressIssuesCount: response.stats?.in_progress_tasks ?? 0,
+          averageTime: response.stats?.avg_lead_time_h ?? 0,
+          averageIssuesCount: response.stats?.avg_daily_weekly ?? 0
+        }
+      })),
       catchError(err => {
         console.error('DatabaseProjectServices.getProjectStatByID error', err);
         return throwError(() => err);
