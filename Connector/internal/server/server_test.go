@@ -18,10 +18,6 @@ func TestNew(t *testing.T) {
 
 	srv := New(8080, client, retryConfig, 100, db, 2)
 
-	if srv == nil {
-		t.Fatal("New returned nil")
-	}
-
 	if srv.httpServer == nil {
 		t.Fatal("httpServer is nil")
 	}
