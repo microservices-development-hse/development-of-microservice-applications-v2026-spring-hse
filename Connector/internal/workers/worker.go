@@ -22,7 +22,7 @@ type Worker struct {
 	ctx         context.Context
 	jobs        <-chan Job
 	results     chan<- Result
-	client      *jiraclient.Client
+	client      jiraclient.ClientInterface
 	retryConfig jiraclient.RetryConfig
 	projectKey  string
 	maxResults  int
@@ -33,7 +33,7 @@ func NewWorker(
 	id int,
 	jobs <-chan Job,
 	results chan<- Result,
-	client *jiraclient.Client,
+	client jiraclient.ClientInterface,
 	retryConfig jiraclient.RetryConfig,
 	projectKey string,
 	maxResults int,

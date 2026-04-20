@@ -17,6 +17,13 @@ type Loader struct {
 	stmtInsertStatusChange *sql.Stmt
 }
 
+type LoaderInterface interface {
+	LoadProject(ctx context.Context, project dbmodels.Project) (int, error)
+	UpsertAuthors(ctx context.Context, authors map[string]dbmodels.Author) (map[string]int, error)
+	LoadIssues(ctx context.Context, issues []dbmodels.Issue) (map[string]int, error)
+	LoadStatusChanges(ctx context.Context, changes []dbmodels.StatusChange) error
+}
+
 func NewLoader(db *sql.DB, upsertProject, upsertIssue, insertAuthor, insertStatusChange *sql.Stmt) *Loader {
 	return &Loader{
 		db:                     db,
