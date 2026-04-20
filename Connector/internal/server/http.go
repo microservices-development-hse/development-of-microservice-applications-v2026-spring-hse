@@ -98,3 +98,8 @@ func corsMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+// Для интеграционных тестов
+func (s *Server) Handler() http.Handler {
+	return s.httpServer.Handler
+}

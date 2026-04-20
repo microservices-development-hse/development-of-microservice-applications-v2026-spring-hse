@@ -88,3 +88,18 @@ func Ping() error {
 
 	return nil
 }
+
+// Для интеграционных тестов
+func SetDBForTesting(conn *sql.DB) error {
+	if db != nil {
+		return fmt.Errorf("database already initialized")
+	}
+
+	db = conn
+
+	return nil
+}
+
+func ResetForTesting() {
+	db = nil
+}
