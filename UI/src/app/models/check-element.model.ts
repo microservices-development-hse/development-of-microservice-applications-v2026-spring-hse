@@ -1,7 +1,7 @@
-export class CheckedProject{
+export class CheckedProject {
   constructor(
-    public Name: String,
-    public Checked: Boolean,
-    public Id:Number
-  ){}
+    public Name: string,
+    public Checked: boolean,
+    public Id: number
+  ) {}
 }

@@ -14,31 +14,39 @@ export class ProjectServices {
   constructor(private http: HttpClient) {}
 
   getAll(page: number = 1, searchName: string = ''): Observable<IRequest> {
-    const params = new HttpParams()
-      .set('page', String(page))
-      .set('limit', '20')
-      .set('search', searchName || '');
-
     const url = `${this.urlPath}/connector/projects`;
+    const search = searchName.trim().toLowerCase();
 
-    return this.http.get<any>(url, { params }).pipe(
+    return this.http.get<any>(url).pipe(
       map((response: any) => {
         const list = Array.isArray(response) ? response : (response.projects || []);
-  
-        const projects = list.map((p: any) => ({
+
+        const filtered = list.filter((p: any) => {
+          if (!search) {
+            return true;
+          }
+
+          const key = (p.key || '').toLowerCase();
+          const name = (p.name || p.title || '').toLowerCase();
+          const url = (p.url || '').toLowerCase();
+
+          return key.includes(search) || name.includes(search) || url.includes(search);
+        });
+
+        const projects = filtered.map((p: any) => ({
           Existence: false,
           Id: 0,
           Key: p.key,
           Name: p.name || p.key,
           Url: p.url || ''
         }));
-
+  
         return {
           projects,
           pageInfo: {
-            currentPage: 1,
+            currentPage: page,
             projectsCount: projects.length,
-            pageCount: 1
+            pageCount: Math.max(1, Math.ceil(projects.length / 10))
           }
         };
       }),
