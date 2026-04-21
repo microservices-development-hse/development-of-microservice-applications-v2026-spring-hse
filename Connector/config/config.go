@@ -12,6 +12,7 @@ type ProgramSettings struct {
 	MinTimeSleep      int    `yaml:"minTimeSleep"`
 	MaxTimeSleep      int    `yaml:"maxTimeSleep"`
 	Port              int    `yaml:"port"`
+	GRPCPort          int    `yaml:"grpcPort"`
 }
 
 type DBSettings struct {
