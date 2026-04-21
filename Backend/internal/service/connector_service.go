@@ -46,7 +46,6 @@ func (s *connectorService) TriggerProjectImport(projectKey string) error {
 	resp, err := s.client.TriggerProjectImport(ctx, &pb.ImportRequest{
 		ProjectKey: projectKey,
 	})
-
 	if err != nil {
 		return fmt.Errorf("gRPC import call failed: %w", err)
 	}
