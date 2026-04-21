@@ -96,12 +96,14 @@ func TestProjectService_DeleteProject(t *testing.T) {
 
 	t.Run("Delete - Success", func(t *testing.T) {
 		mockRepo.On("DeleteProject", 10).Return(nil).Once()
+
 		err := svc.DeleteProject(10)
 		assert.NoError(t, err)
 	})
 
 	t.Run("Delete - Error", func(t *testing.T) {
 		mockRepo.On("DeleteProject", 10).Return(errors.New("constraint violation")).Once()
+
 		err := svc.DeleteProject(10)
 		assert.Error(t, err)
 	})

@@ -32,7 +32,11 @@ func main() {
 		logrus.Fatalf("did not connect: %v", err)
 	}
 
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			logrus.Fatalf("failed to close connection: %v", err)
+		}
+	}()
 
 	grpcClient := pb.NewConnectorServiceClient(conn)
 

@@ -47,7 +47,6 @@ func TestConnectorService(t *testing.T) {
 
 	t.Run("TriggerProjectImport - Remote Error", func(t *testing.T) {
 		mockResp := &pb.ImportResponse{Success: false}
-
 		mockClient.On("TriggerProjectImport", mock.Anything, mock.Anything, mock.Anything).
 			Return(mockResp, nil).Once()
 
