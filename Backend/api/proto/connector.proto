@@ -3,6 +3,7 @@ syntax = "proto3";
 package connector;
 option go_package = "./internal/generated/connector";
 
+// ConnectorService provides methods for fetching and importing Jira projects.
 service ConnectorService {
   // Получение списка проектов из Jira
   rpc FetchRemoteProjects (Empty) returns (ProjectList);
