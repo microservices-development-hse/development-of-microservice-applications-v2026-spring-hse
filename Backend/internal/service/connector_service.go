@@ -1,11 +1,10 @@
 package service
 
 import (
-	"bytes"
-	"encoding/json"
+	"context"
 	"fmt"
-	"net/http"
 
+	pb "github.com/microservices-development-hse/backend/internal/generated/connector"
 	"github.com/microservices-development-hse/backend/internal/models"
 )
 
@@ -15,64 +14,44 @@ type ConnectorService interface {
 }
 
 type connectorService struct {
-	connectorURL string
+	client pb.ConnectorServiceClient
 }
 
-func NewConnectorService(url string) ConnectorService {
+func NewConnectorService(client pb.ConnectorServiceClient) ConnectorService {
 	return &connectorService{
-		connectorURL: url,
+		client: client,
 	}
 }
 
 func (s *connectorService) FetchRemoteProjects() ([]models.Project, error) {
-	resp, err := http.Get(fmt.Sprintf("%s/projects", s.connectorURL))
+	ctx := context.Background()
+
+	resp, err := s.client.FetchRemoteProjects(ctx, &pb.Empty{})
 	if err != nil {
-		return nil, fmt.Errorf("connector unavailable: %w", err)
+		return nil, fmt.Errorf("gRPC call failed: %w", err)
 	}
 
-	defer func() {
-		_ = resp.Body.Close()
-	}()
+	var projects []models.Project
 
-	var data struct {
-		Projects []models.Project `json:"projects"`
+	for _, p := range resp.Projects {
+		projects = append(projects, models.Project{Key: p.Key, Title: p.Title})
 	}
 
-	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
-		return nil, fmt.Errorf("failed to decode projects: %w", err)
-	}
-
-	return data.Projects, nil
+	return projects, nil
 }
 
 func (s *connectorService) TriggerProjectImport(projectKey string) error {
-	body, err := json.Marshal(map[string]string{
-		"project_key": projectKey,
+	ctx := context.Background()
+
+	resp, err := s.client.TriggerProjectImport(ctx, &pb.ImportRequest{
+		ProjectKey: projectKey,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to marshal import request: %w", err)
+		return fmt.Errorf("gRPC import call failed: %w", err)
 	}
 
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/import", s.connectorURL), bytes.NewBuffer(body))
-	if err != nil {
-		return fmt.Errorf("failed to create import request: %w", err)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return fmt.Errorf("failed to trigger import: %w", err)
-	}
-
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			fmt.Println("error closing body:", err)
-		}
-	}()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("connector returned error: %d", resp.StatusCode)
+	if !resp.GetSuccess() {
+		return fmt.Errorf("connector failed to start import: %s", resp.GetMessage())
 	}
 
 	return nil
