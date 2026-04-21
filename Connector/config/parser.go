@@ -59,5 +59,9 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("port must be between 1 and 65535 (current value: %d)", p.Port)
 	}
 
+	if p.GRPCPort <= 0 || p.GRPCPort > 65535 {
+		return fmt.Errorf("grpcPort must be between 1 and 65535 (current value: %d)", p.GRPCPort)
+	}
+
 	return nil
 }
