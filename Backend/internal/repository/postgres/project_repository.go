@@ -182,3 +182,11 @@ func (r *ProjectRepository) GetDryStatistics(projectID int) (map[string]interfac
 		"avg_daily_weekly":  math.Round(float64(weeklyCount)/7.0*100) / 100,
 	}, nil
 }
+
+func (r *ProjectRepository) Exists(id int) (bool, error) {
+	project, err := r.GetProjectByID(id)
+	if err != nil {
+		return false, err
+	}
+	return project != nil, nil
+}

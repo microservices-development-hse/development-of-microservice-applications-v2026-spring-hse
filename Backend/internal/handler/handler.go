@@ -18,7 +18,7 @@ type Handlers struct {
 func InitializeHandlers(services *service.Services) *Handlers {
 	return &Handlers{
 		Project:   NewProjectHandler(services.Project),
-		Analytics: NewAnalyticsHandler(services.Analytics),
+		Analytics: NewAnalyticsHandler(services.Analytics, services.Project),
 		Issue:     NewIssueHandler(services.Issue),
 		Connector: NewConnectorHandler(services.Connector),
 	}

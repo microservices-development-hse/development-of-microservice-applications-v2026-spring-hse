@@ -13,6 +13,7 @@ type ProjectService interface {
 	CreateProject(key, title, url string) (*models.Project, error)
 	UpdateProject(id int, key, title string) (*models.Project, error)
 	DeleteProject(id int) error
+	Exists(id int) (bool, error)
 }
 
 type projectService struct {
@@ -98,4 +99,13 @@ func (s *projectService) GetProjectDetails(id int) (*models.Project, map[string]
 	}
 
 	return project, stats, nil
+}
+
+func (s *projectService) Exists(id int) (bool, error) {
+	exists, err := s.repo.Exists(id)
+	if err != nil {
+		return false, err
+	}
+
+	return exists, nil
 }

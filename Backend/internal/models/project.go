@@ -16,6 +16,7 @@ type ProjectRepository interface {
 	GetBasicStats(projectID int) (map[string]interface{}, error)
 	DeleteProject(id int) error
 	GetDryStatistics(projectID int) (map[string]interface{}, error)
+	Exists(id int) (bool, error)
 }
 
 func (Project) TableName() string {
