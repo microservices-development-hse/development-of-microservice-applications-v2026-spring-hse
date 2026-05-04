@@ -23,7 +23,7 @@ func TransformProject(jp jiramodels.ProjectResponse) (dbmodels.Project, error) {
 }
 
 func TransformIssue(ji jiramodels.Issue, projectID int, authorID, assigneeID *int) (dbmodels.Issue, error) {
-	return dbmodels.Issue{
+	issue := dbmodels.Issue{
 		ExternalID:  ji.ID,
 		ProjectID:   projectID,
 		AuthorID:    authorID,
@@ -35,7 +35,14 @@ func TransformIssue(ji jiramodels.Issue, projectID int, authorID, assigneeID *in
 		CreatedTime: ji.Fields.Created.Time,
 		UpdatedTime: ji.Fields.Updated.Time,
 		TimeSpent:   ji.Fields.TimeTracking.TimeSpentSeconds,
-	}, nil
+	}
+
+	s := ji.Fields.Status.Name
+	if s == "Closed" || s == "Resolved" || s == "Done" {
+		issue.ClosedTime = &ji.Fields.Updated.Time
+	}
+
+	return issue, nil
 }
 
 func TransformStatusChanges(changelog *jiramodels.Changelog, issueID int, authorIDs map[string]int) []dbmodels.StatusChange {

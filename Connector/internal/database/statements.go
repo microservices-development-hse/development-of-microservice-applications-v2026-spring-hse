@@ -33,15 +33,16 @@ func InitStatements() error {
 	}
 
 	StmtUpsertIssue, err = db.Prepare(`
-		INSERT INTO issues (external_id, project_id, author_id, assignee_id, key, summary, priority, status, created_time, updated_time, time_spent)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+		INSERT INTO issues (external_id, project_id, author_id, assignee_id, key, summary, priority, status, created_time, updated_time, time_spent, closed_time)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 		ON CONFLICT (key) DO UPDATE
 			SET summary      = EXCLUDED.summary,
 			    status       = EXCLUDED.status,
 			    priority     = EXCLUDED.priority,
 			    assignee_id  = EXCLUDED.assignee_id,
 			    updated_time = EXCLUDED.updated_time,
-			    time_spent   = EXCLUDED.time_spent
+			    time_spent   = EXCLUDED.time_spent,
+				closed_time  = EXCLUDED.closed_time
 		RETURNING id`)
 	if err != nil {
 		return fmt.Errorf("StmtUpsertIssue: %w", err)

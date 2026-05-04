@@ -66,20 +66,21 @@ func (r *AnalyticsRepository) GetTaskPriorityDistribution(ctx context.Context, p
 func (r *AnalyticsRepository) GetProjectComplexity(ctx context.Context, projectID int) ([]models.TaskComplexity, error) {
 	results := make([]models.TaskComplexity, 0)
 
-	leadTimeExpr := "EXTRACT(EPOCH FROM (issues.closed_time - issues.created_time)) / 3600"
+	query := `
+        SELECT 
+            i.key AS issue_key,
+            EXTRACT(EPOCH FROM (MAX(sc.change_time) - MIN(sc.change_time))) / 3600 AS lead_time,
+            COUNT(sc.issue_id) AS move_count
+        FROM issues i
+        JOIN status_changes sc ON sc.issue_id = i.id
+        WHERE i.project_id = ? 
+          AND i.closed_time IS NOT NULL
+        GROUP BY i.id, i.key
+        -- Меняем > 1 на > 0, чтобы увидеть задачи с одним переходом
+        HAVING COUNT(sc.issue_id) > 0 
+    `
 
-	err := r.db.WithContext(ctx).
-		Table("issues").
-		Select(
-			"issues.key AS issue_key",
-			leadTimeExpr+" AS lead_time",
-			"COUNT(sc.issue_id) AS move_count",
-		).
-		Joins("LEFT JOIN status_changes sc ON sc.issue_id = issues.id").
-		Where("issues.project_id = ? AND issues.closed_time IS NOT NULL", projectID).
-		Group("issues.id, issues.key, issues.closed_time, issues.created_time").
-		Scan(&results).Error
-
+	err := r.db.WithContext(ctx).Raw(query, projectID).Scan(&results).Error
 	return results, err
 }
 

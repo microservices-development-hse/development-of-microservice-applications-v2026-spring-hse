@@ -122,6 +122,7 @@ func (l *Loader) LoadIssues(ctx context.Context, issues []dbmodels.Issue) (map[s
 			issue.CreatedTime,
 			issue.UpdatedTime,
 			issue.TimeSpent,
+			issue.ClosedTime,
 		).Scan(&id)
 		if err != nil {
 			logger.Error("loader: upsert issue %q failed: %v", issue.Key, err)

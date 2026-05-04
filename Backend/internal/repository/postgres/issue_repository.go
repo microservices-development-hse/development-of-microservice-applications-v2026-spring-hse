@@ -61,6 +61,14 @@ func (r *IssueRepository) GetIssuesByProjectID(projectID int, limit, offset int)
 
 func (r *IssueRepository) UpdateIssueWithHistory(issue *models.Issue, fromStatus string) error {
 	err := r.db.Transaction(func(tx *gorm.DB) error {
+		isFinalStatus := issue.Status == "Closed" || issue.Status == "Resolved" || issue.Status == "Done"
+		if isFinalStatus && issue.ClosedTime == nil {
+			now := time.Now()
+			issue.ClosedTime = &now
+		} else if !isFinalStatus {
+			issue.ClosedTime = nil
+		}
+
 		if err := tx.Save(issue).Error; err != nil {
 			return fmt.Errorf("failed to save issue: %w", err)
 		}
@@ -73,6 +81,7 @@ func (r *IssueRepository) UpdateIssueWithHistory(issue *models.Issue, fromStatus
 				ToStatus:   issue.Status,
 				ChangeTime: time.Now(),
 			}
+
 			if err := tx.Create(&change).Error; err != nil {
 				return fmt.Errorf("failed to create status change record: %w", err)
 			}
