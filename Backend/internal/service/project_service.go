@@ -104,7 +104,7 @@ func (s *projectService) GetProjectDetails(id int) (*models.Project, map[string]
 func (s *projectService) Exists(id int) (bool, error) {
 	exists, err := s.repo.Exists(id)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("project with ID %d does not exist", id)
 	}
 
 	return exists, nil

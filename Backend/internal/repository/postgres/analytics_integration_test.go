@@ -13,9 +13,7 @@ func TestAnalyticsRepository_Integration(t *testing.T) {
 	env := SetupRepoTestEnv(t)
 	repo := NewAnalyticsRepository(env.DB)
 	ctx := context.Background()
-
 	setup := func(t *testing.T) (models.Project, models.Author) {
-
 		env.DB.Exec("TRUNCATE TABLE status_changes, issues, projects, authors, analytics_snapshots RESTART IDENTITY CASCADE")
 
 		author := models.Author{ExternalID: "author_" + t.Name(), Name: "Analyst"}
@@ -51,6 +49,7 @@ func TestAnalyticsRepository_Integration(t *testing.T) {
 
 		res, err := repo.CalculateTimeInState(ctx, proj.ID)
 		assert.NoError(t, err)
+
 		if assert.NotEmpty(t, res) {
 			assert.Contains(t, res, "To Do")
 			assert.InDelta(t, 2.0, res["To Do"][0], 0.001)

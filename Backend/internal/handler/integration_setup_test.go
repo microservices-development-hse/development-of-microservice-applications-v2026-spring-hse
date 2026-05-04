@@ -28,6 +28,7 @@ func SetupIntegrationEnv(t *testing.T) *SharedTestEnv {
 
 	// Подключение к БД для тестов
 	dsn := "host=localhost user=pguser password=pgpassword dbname=testdb port=5432 sslmode=disable"
+
 	db, err := gorm.Open(gormpg.Open(dsn), &gorm.Config{})
 	if err != nil {
 		t.Fatalf("Failed to connect to test DB: %v", err)
@@ -42,6 +43,7 @@ func SetupIntegrationEnv(t *testing.T) *SharedTestEnv {
 	if err != nil {
 		t.Fatalf("Failed to connect to gRPC: %v", err)
 	}
+
 	grpcClient := pb.NewConnectorServiceClient(conn)
 
 	repos := postgres.NewRepositories(db)

@@ -15,7 +15,9 @@ import (
 func TestRouter_FullIntegration_Analytics(t *testing.T) {
 	env := SetupIntegrationEnv(t)
 	r := NewRouter(env.Cfg, env.Handlers)
+
 	server := httptest.NewServer(r)
+
 	defer server.Close()
 
 	t.Run("Recalculate_Success_With_Real_DB", func(t *testing.T) {
@@ -34,7 +36,9 @@ func TestRouter_FullIntegration_Analytics(t *testing.T) {
 
 		assert.Eventually(t, func() bool {
 			var snapshot models.AnalyticsSnapshot
+
 			err := env.DB.Where("project_id = ?", project.ID).Find(&snapshot).Error
+
 			return err == nil
 		}, 5*time.Second, 500*time.Millisecond, "Analytics snapshot must be created in Database")
 	})

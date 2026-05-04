@@ -16,6 +16,7 @@ import (
 func TestAnalytics_Integration_FullFlow(t *testing.T) {
 	env := SetupIntegrationEnv(t)
 	router := NewRouter(env.Cfg, env.Handlers)
+
 	server := httptest.NewServer(router)
 	defer server.Close()
 
@@ -34,7 +35,9 @@ func TestAnalytics_Integration_FullFlow(t *testing.T) {
 
 		assert.Eventually(t, func() bool {
 			var snapshot models.AnalyticsSnapshot
+
 			err := env.DB.Where("project_id = ?", project.ID).First(&snapshot).Error
+
 			return err == nil
 		}, 5*time.Second, 500*time.Millisecond, "Снимок аналитики должен появиться в БД")
 	})
@@ -43,6 +46,7 @@ func TestAnalytics_Integration_FullFlow(t *testing.T) {
 func TestConnector_Integration_Import_Validation(t *testing.T) {
 	env := SetupIntegrationEnv(t)
 	router := NewRouter(env.Cfg, env.Handlers)
+
 	server := httptest.NewServer(router)
 	defer server.Close()
 

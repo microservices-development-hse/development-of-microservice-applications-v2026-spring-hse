@@ -14,6 +14,7 @@ import (
 func TestConnector_Integration_RealFlow(t *testing.T) {
 	env := SetupIntegrationEnv(t)
 	r := NewRouter(env.Cfg, env.Handlers)
+
 	server := httptest.NewServer(r)
 	defer server.Close()
 
@@ -42,6 +43,7 @@ func TestConnector_Integration_RealFlow(t *testing.T) {
 			assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 			var result map[string]string
+
 			err = json.NewDecoder(resp.Body).Decode(&result)
 			assert.NoError(t, err)
 			assert.Equal(t, "import triggered", result["status"])

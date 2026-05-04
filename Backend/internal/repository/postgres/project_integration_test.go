@@ -88,11 +88,9 @@ func TestProjectRepository_Full(t *testing.T) {
 
 	t.Run("Exists_Error", func(t *testing.T) {
 		exists, err := repo.Exists(-1)
-
 		if err != nil {
 			assert.False(t, exists)
 			assert.Error(t, err)
 		}
 	})
-
 }

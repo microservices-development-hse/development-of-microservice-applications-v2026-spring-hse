@@ -34,6 +34,7 @@ func (h *AnalyticsHandler) GetAnalytics(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
+
 	if !exists {
 		http.Error(w, "Project not found", http.StatusNotFound)
 		return

@@ -17,6 +17,7 @@ import (
 func withChiContext(r *http.Request, key, value string) *http.Request {
 	rctx := chi.NewRouteContext()
 	rctx.URLParams.Add(key, value)
+
 	return r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx))
 }
 
@@ -67,7 +68,7 @@ func TestAnalyticsHandler_GetAnalytics(t *testing.T) {
 		h := NewAnalyticsHandler(mAn, mPr)
 
 		projectID := 1
-		// Твой хендлер вызывает Exists() ПЕРЕД проверкой типа, поэтому мок ДОЛЖЕН знать, что ответить
+
 		mPr.On("Exists", projectID).Return(true, nil).Once()
 
 		req := httptest.NewRequest("GET", "/api/v1/projects/1/analytics", nil) // Нет параметра ?type=

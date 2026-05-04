@@ -14,6 +14,7 @@ func TestIssueRepository_Full(t *testing.T) {
 
 	author := models.Author{ExternalID: "issue_auth", Name: "Ivan"}
 	env.DB.Create(&author)
+
 	proj := models.Project{Key: "ISS", Title: "Issue Proj"}
 	env.DB.Create(&proj)
 
@@ -35,6 +36,7 @@ func TestIssueRepository_Full(t *testing.T) {
 		assert.NoError(t, err)
 
 		var change models.StatusChanges
+
 		err = env.DB.Where("issue_id = ?", issue.ID).First(&change).Error
 		assert.NoError(t, err)
 		assert.Equal(t, "Open", change.FromStatus)
@@ -98,6 +100,7 @@ func TestIssueRepository_Full(t *testing.T) {
 
 			assert.Error(t, err)
 			assert.Contains(t, err.Error(), "transaction failed")
+
 			return nil
 		})
 	})
@@ -114,5 +117,4 @@ func TestIssueRepository_Full(t *testing.T) {
 			return nil
 		})
 	})
-
 }
