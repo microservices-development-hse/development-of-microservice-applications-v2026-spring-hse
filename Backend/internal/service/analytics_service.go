@@ -126,6 +126,10 @@ func (s *analyticsService) processLifeCycle(ctx context.Context, projectID int) 
 }
 
 func (s *analyticsService) saveSnapshot(ctx context.Context, projectID int, t string, data interface{}) {
+	if data == nil {
+		data = make(map[string]interface{})
+	}
+
 	jsonData, _ := json.Marshal(data)
 	snapshot := &models.AnalyticsSnapshot{
 		ProjectID:    projectID,

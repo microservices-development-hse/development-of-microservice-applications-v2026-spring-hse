@@ -10,12 +10,12 @@ type StatusChanges struct {
 	ToStatus   string    `json:"to_status" db:"to_status"`
 }
 
-type HistoryRepository interface {
-	AddStatusChanges(history *StatusChanges) error
-	GetHistoryByIssueID(issueID int) ([]StatusChanges, error)
-	GetByAuthorID(authorID int) ([]StatusChanges, error)
-	DeleteByIssueID(issueID int) error
-}
+// type HistoryRepository interface {
+// 	AddStatusChanges(history *StatusChanges) error
+// 	GetHistoryByIssueID(issueID int) ([]StatusChanges, error)
+// 	GetByAuthorID(authorID int) ([]StatusChanges, error)
+// 	DeleteByIssueID(issueID int) error
+// }
 
 func (StatusChanges) TableName() string {
 	return "status_changes"

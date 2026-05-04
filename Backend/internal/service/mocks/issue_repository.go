@@ -31,52 +31,52 @@ func (_m *IssueRepository) CreateIssue(issue *models.Issue) error {
 }
 
 // DeleteIssue provides a mock function with given fields: id
-func (_m *IssueRepository) DeleteIssue(id int) error {
-	ret := _m.Called(id)
+// func (_m *IssueRepository) DeleteIssue(id int) error {
+// 	ret := _m.Called(id)
 
-	if len(ret) == 0 {
-		panic("no return value specified for DeleteIssue")
-	}
+// 	if len(ret) == 0 {
+// 		panic("no return value specified for DeleteIssue")
+// 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(int) error); ok {
-		r0 = rf(id)
-	} else {
-		r0 = ret.Error(0)
-	}
+// 	var r0 error
+// 	if rf, ok := ret.Get(0).(func(int) error); ok {
+// 		r0 = rf(id)
+// 	} else {
+// 		r0 = ret.Error(0)
+// 	}
 
-	return r0
-}
+// 	return r0
+// }
 
 // GetIssueByExternalID provides a mock function with given fields: externalID
-func (_m *IssueRepository) GetIssueByExternalID(externalID string) (*models.Issue, error) {
-	ret := _m.Called(externalID)
+// func (_m *IssueRepository) GetIssueByExternalID(externalID string) (*models.Issue, error) {
+// 	ret := _m.Called(externalID)
 
-	if len(ret) == 0 {
-		panic("no return value specified for GetIssueByExternalID")
-	}
+// 	if len(ret) == 0 {
+// 		panic("no return value specified for GetIssueByExternalID")
+// 	}
 
-	var r0 *models.Issue
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (*models.Issue, error)); ok {
-		return rf(externalID)
-	}
-	if rf, ok := ret.Get(0).(func(string) *models.Issue); ok {
-		r0 = rf(externalID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.Issue)
-		}
-	}
+// 	var r0 *models.Issue
+// 	var r1 error
+// 	if rf, ok := ret.Get(0).(func(string) (*models.Issue, error)); ok {
+// 		return rf(externalID)
+// 	}
+// 	if rf, ok := ret.Get(0).(func(string) *models.Issue); ok {
+// 		r0 = rf(externalID)
+// 	} else {
+// 		if ret.Get(0) != nil {
+// 			r0 = ret.Get(0).(*models.Issue)
+// 		}
+// 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(externalID)
-	} else {
-		r1 = ret.Error(1)
-	}
+// 	if rf, ok := ret.Get(1).(func(string) error); ok {
+// 		r1 = rf(externalID)
+// 	} else {
+// 		r1 = ret.Error(1)
+// 	}
 
-	return r0, r1
-}
+// 	return r0, r1
+// }
 
 // GetIssueByKey provides a mock function with given fields: key
 func (_m *IssueRepository) GetIssueByKey(key string) (*models.Issue, error) {
@@ -146,22 +146,22 @@ func (_m *IssueRepository) GetIssuesByProjectID(projectID int, limit int, offset
 }
 
 // UpdateIssue provides a mock function with given fields: issue
-func (_m *IssueRepository) UpdateIssue(issue *models.Issue) error {
-	ret := _m.Called(issue)
+// func (_m *IssueRepository) UpdateIssue(issue *models.Issue) error {
+// 	ret := _m.Called(issue)
 
-	if len(ret) == 0 {
-		panic("no return value specified for UpdateIssue")
-	}
+// 	if len(ret) == 0 {
+// 		panic("no return value specified for UpdateIssue")
+// 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*models.Issue) error); ok {
-		r0 = rf(issue)
-	} else {
-		r0 = ret.Error(0)
-	}
+// 	var r0 error
+// 	if rf, ok := ret.Get(0).(func(*models.Issue) error); ok {
+// 		r0 = rf(issue)
+// 	} else {
+// 		r0 = ret.Error(0)
+// 	}
 
-	return r0
-}
+// 	return r0
+// }
 
 // UpdateIssueWithHistory provides a mock function with given fields: issue, fromStatus
 func (_m *IssueRepository) UpdateIssueWithHistory(issue *models.Issue, fromStatus string) error {

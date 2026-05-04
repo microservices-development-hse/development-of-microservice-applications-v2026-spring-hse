@@ -22,11 +22,8 @@ type Issue struct {
 
 type IssueRepository interface {
 	CreateIssue(issue *Issue) error
-	UpdateIssue(issue *Issue) error
 	GetIssuesByProjectID(projectID int, limit, offset int) ([]Issue, int, error)
-	GetIssueByExternalID(externalID string) (*Issue, error)
 	GetIssueByKey(key string) (*Issue, error)
-	DeleteIssue(id int) error
 	UpdateIssueWithHistory(issue *Issue, fromStatus string) error
 }
 

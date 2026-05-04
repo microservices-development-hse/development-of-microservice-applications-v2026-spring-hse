@@ -16,7 +16,7 @@ func InitializeServices(repos *postgres.Repositories, connectorClient pb.Connect
 	return &Services{
 		Project:   NewProjectService(repos.Project),
 		Analytics: NewAnalyticsService(repos.Analytics),
-		Issue:     NewIssueService(repos.Issue, repos.Author),
+		Issue:     NewIssueService(repos.Issue),
 		Connector: NewConnectorService(connectorClient),
 	}
 }

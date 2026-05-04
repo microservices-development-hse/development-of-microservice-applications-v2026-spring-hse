@@ -40,7 +40,7 @@ func (r *AnalyticsRepository) GetLatestSnapshot(ctx context.Context, projectID i
 }
 
 func (r *AnalyticsRepository) GetTaskStatusDistribution(ctx context.Context, projectID int) ([]models.DistributionItem, error) {
-	var results []models.DistributionItem
+	results := make([]models.DistributionItem, 0)
 
 	err := r.db.WithContext(ctx).Table("issues").
 		Select("status as name, count(*) as value").
@@ -52,7 +52,7 @@ func (r *AnalyticsRepository) GetTaskStatusDistribution(ctx context.Context, pro
 }
 
 func (r *AnalyticsRepository) GetTaskPriorityDistribution(ctx context.Context, projectID int) ([]models.DistributionItem, error) {
-	var results []models.DistributionItem
+	results := make([]models.DistributionItem, 0)
 
 	err := r.db.WithContext(ctx).Table("issues").
 		Select("priority as name, count(*) as value").
@@ -64,7 +64,7 @@ func (r *AnalyticsRepository) GetTaskPriorityDistribution(ctx context.Context, p
 }
 
 func (r *AnalyticsRepository) GetProjectComplexity(ctx context.Context, projectID int) ([]models.TaskComplexity, error) {
-	var results []models.TaskComplexity
+	results := make([]models.TaskComplexity, 0)
 
 	leadTimeExpr := "EXTRACT(EPOCH FROM (issues.closed_time - issues.created_time)) / 3600"
 
@@ -84,7 +84,7 @@ func (r *AnalyticsRepository) GetProjectComplexity(ctx context.Context, projectI
 }
 
 func (r *AnalyticsRepository) GetOpenTasksBottlenecks(ctx context.Context, projectID int) ([]models.OpenTaskDuration, error) {
-	var results []models.OpenTaskDuration
+	results := make([]models.OpenTaskDuration, 0)
 
 	timeInStatusExpr := "EXTRACT(EPOCH FROM (NOW() - COALESCE(MAX(sc.change_time), issues.created_time))) / 3600"
 
@@ -102,7 +102,7 @@ func (r *AnalyticsRepository) GetOpenTasksBottlenecks(ctx context.Context, proje
 }
 
 func (r *AnalyticsRepository) CalculateTimeInState(ctx context.Context, projectID int) (map[string][]float64, error) {
-	var changes []models.StatusChanges
+	changes := make([]models.StatusChanges, 0)
 
 	err := r.db.WithContext(ctx).
 		Table("status_changes sc").

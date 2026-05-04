@@ -61,52 +61,52 @@ func (_m *AuthorRepository) GetAuthorByExternalID(externalID string) (*models.Au
 }
 
 // GetAuthorByName provides a mock function with given fields: name
-func (_m *AuthorRepository) GetAuthorByName(name string) (*models.Author, error) {
-	ret := _m.Called(name)
+// func (_m *AuthorRepository) GetAuthorByName(name string) (*models.Author, error) {
+// 	ret := _m.Called(name)
 
-	if len(ret) == 0 {
-		panic("no return value specified for GetAuthorByName")
-	}
+// 	if len(ret) == 0 {
+// 		panic("no return value specified for GetAuthorByName")
+// 	}
 
-	var r0 *models.Author
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (*models.Author, error)); ok {
-		return rf(name)
-	}
-	if rf, ok := ret.Get(0).(func(string) *models.Author); ok {
-		r0 = rf(name)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.Author)
-		}
-	}
+// 	var r0 *models.Author
+// 	var r1 error
+// 	if rf, ok := ret.Get(0).(func(string) (*models.Author, error)); ok {
+// 		return rf(name)
+// 	}
+// 	if rf, ok := ret.Get(0).(func(string) *models.Author); ok {
+// 		r0 = rf(name)
+// 	} else {
+// 		if ret.Get(0) != nil {
+// 			r0 = ret.Get(0).(*models.Author)
+// 		}
+// 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(name)
-	} else {
-		r1 = ret.Error(1)
-	}
+// 	if rf, ok := ret.Get(1).(func(string) error); ok {
+// 		r1 = rf(name)
+// 	} else {
+// 		r1 = ret.Error(1)
+// 	}
 
-	return r0, r1
-}
+// 	return r0, r1
+// }
 
 // UpdateAuthor provides a mock function with given fields: author
-func (_m *AuthorRepository) UpdateAuthor(author *models.Author) error {
-	ret := _m.Called(author)
+// func (_m *AuthorRepository) UpdateAuthor(author *models.Author) error {
+// 	ret := _m.Called(author)
 
-	if len(ret) == 0 {
-		panic("no return value specified for UpdateAuthor")
-	}
+// 	if len(ret) == 0 {
+// 		panic("no return value specified for UpdateAuthor")
+// 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*models.Author) error); ok {
-		r0 = rf(author)
-	} else {
-		r0 = ret.Error(0)
-	}
+// 	var r0 error
+// 	if rf, ok := ret.Get(0).(func(*models.Author) error); ok {
+// 		r0 = rf(author)
+// 	} else {
+// 		r0 = ret.Error(0)
+// 	}
 
-	return r0
-}
+// 	return r0
+// }
 
 // NewAuthorRepository creates a new instance of AuthorRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.

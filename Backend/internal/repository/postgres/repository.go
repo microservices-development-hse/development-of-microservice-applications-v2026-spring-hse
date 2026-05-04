@@ -12,7 +12,6 @@ type Repositories struct {
 	Project   *ProjectRepository
 	Analytics *AnalyticsRepository
 	Issue     *IssueRepository
-	Author    *AuthorRepository
 }
 
 func NewRepositories(db *gorm.DB) *Repositories {
@@ -20,7 +19,6 @@ func NewRepositories(db *gorm.DB) *Repositories {
 		Project:   NewProjectRepository(db),
 		Analytics: NewAnalyticsRepository(db),
 		Issue:     NewIssueRepository(db),
-		Author:    NewAuthorRepository(db),
 	}
 }
 
