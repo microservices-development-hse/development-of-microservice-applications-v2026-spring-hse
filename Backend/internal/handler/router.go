@@ -52,9 +52,9 @@ func NewRouter(cfg *config.Config, h *Handlers) *chi.Mux {
 			r.Post("/import", h.Connector.StartImport)
 		})
 
-		r.Route("/sync", func(r chi.Router) {
-			r.Post("/issue", h.Issue.SyncIssue)
-		})
+		// r.Route("/sync", func(r chi.Router) {
+		// 	r.Post("/issue", h.Issue.SyncIssue)
+		// })
 	})
 
 	return r

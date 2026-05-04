@@ -28,7 +28,7 @@ func (jt *JTime) UnmarshalJSON(b []byte) error {
 		}
 	}
 
-	return nil
+	return &time.ParseError{Value: s, Layout: strings.Join(formats, ", ")}
 }
 
 type IssueSearchResponse struct {
