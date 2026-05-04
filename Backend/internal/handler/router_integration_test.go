@@ -71,7 +71,10 @@ func TestRouter_FullIntegration_GetProjects(t *testing.T) {
 		Projects []models.Project `json:"projects"`
 	}
 
-	json.NewDecoder(resp.Body).Decode(&result)
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
 
 	assert.Len(t, result.Projects, 2)
 	assert.Equal(t, "P1", result.Projects[0].Key)

@@ -89,7 +89,6 @@ func (r *IssueRepository) UpdateIssueWithHistory(issue *models.Issue, fromStatus
 
 		return nil
 	})
-
 	if err != nil {
 		return fmt.Errorf("transaction failed: %w", err)
 	}

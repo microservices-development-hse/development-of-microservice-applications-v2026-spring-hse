@@ -5,6 +5,7 @@ import (
 
 	"github.com/microservices-development-hse/backend/internal/models"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 )
 
@@ -83,15 +84,17 @@ func TestIssueRepository_Full(t *testing.T) {
 		issue := &models.Issue{
 			ProjectID: proj.ID, AuthorID: author.ID, Key: "ERR-UPD", Status: "Open",
 		}
-		repo.CreateIssue(issue)
+
+		err := repo.CreateIssue(issue)
+		require.NoError(t, err)
 
 		issue.ProjectID = 99999
-		err := repo.UpdateIssueWithHistory(issue, "Open")
+		err = repo.UpdateIssueWithHistory(issue, "Open")
 
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "transaction failed")
 
-		env.DB.Transaction(func(tx *gorm.DB) error {
+		err = env.DB.Transaction(func(tx *gorm.DB) error {
 			tx.Exec("SELECT 1/0")
 
 			r := NewIssueRepository(tx)
@@ -103,10 +106,12 @@ func TestIssueRepository_Full(t *testing.T) {
 
 			return nil
 		})
+
+		require.NoError(t, err)
 	})
 
 	t.Run("GetIssuesByProjectID_SQL_Errors", func(t *testing.T) {
-		env.DB.Transaction(func(tx *gorm.DB) error {
+		err := env.DB.Transaction(func(tx *gorm.DB) error {
 			tx.Exec("SELECT 'invalid'::integer")
 
 			r := NewIssueRepository(tx)
@@ -116,5 +121,7 @@ func TestIssueRepository_Full(t *testing.T) {
 
 			return nil
 		})
+
+		require.NoError(t, err)
 	})
 }

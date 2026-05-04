@@ -44,7 +44,8 @@ func TestProjectRepository_Full(t *testing.T) {
 		assert.Nil(t, res)
 
 		proj := &models.Project{Key: "KEY-1", Title: "Key Test"}
-		repo.CreateProject(proj)
+		err = repo.CreateProject(proj)
+		assert.NoError(t, err)
 
 		dryStats, err := repo.GetDryStatistics(proj.ID)
 		assert.NoError(t, err)
@@ -53,9 +54,10 @@ func TestProjectRepository_Full(t *testing.T) {
 
 	t.Run("Cover_Remaining_Methods", func(t *testing.T) {
 		proj := &models.Project{Key: "COV", Title: "Coverage"}
-		repo.CreateProject(proj)
+		err := repo.CreateProject(proj)
+		assert.NoError(t, err)
 
-		_, err := repo.GetDryStatistics(proj.ID)
+		_, err = repo.GetDryStatistics(proj.ID)
 		assert.NoError(t, err)
 
 		res, err := repo.GetProjectByID(99999)
@@ -77,11 +79,14 @@ func TestProjectRepository_Full(t *testing.T) {
 	t.Run("UpdateProject_Error", func(t *testing.T) {
 		proj1 := &models.Project{Key: "UNIQUE1", Title: "Project 1"}
 		proj2 := &models.Project{Key: "UNIQUE2", Title: "Project 2"}
-		repo.CreateProject(proj1)
-		repo.CreateProject(proj2)
+		err := repo.CreateProject(proj1)
+		assert.NoError(t, err)
+
+		err = repo.CreateProject(proj2)
+		assert.NoError(t, err)
 
 		proj2.Key = "UNIQUE1"
-		err := repo.UpdateProject(proj2)
+		err = repo.UpdateProject(proj2)
 
 		assert.Error(t, err)
 	})
