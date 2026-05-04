@@ -49,7 +49,9 @@ func TestIssueRepository_Full(t *testing.T) {
 			ProjectID: proj.ID, AuthorID: author.ID, AssigneeID: author.ID,
 			Key: "EXT-1", ExternalID: "unique_ext_id", Summary: "Sum",
 		}
-		repo.CreateIssue(issue)
+
+		err := repo.CreateIssue(issue)
+		assert.NoError(t, err)
 
 		issue.Summary = "New Summary"
 
