@@ -67,44 +67,6 @@ func (r *ProjectRepository) GetProjectByID(id int) (*models.Project, error) {
 	return &project, nil
 }
 
-func (r *ProjectRepository) GetProjectByKey(key string) (*models.Project, error) {
-	var project models.Project
-
-	err := r.db.Table("projects").Where("key = ?", key).First(&project).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			logrus.Infof("Project with key %s not found", key)
-			return nil, nil
-		}
-
-		logrus.Errorf("Error fetching project by key %s: %v", key, err)
-
-		return nil, err
-	}
-
-	return &project, nil
-}
-
-func (r *ProjectRepository) GetBasicStats(projectID int) (map[string]interface{}, error) {
-	var total, closed int64
-
-	if err := r.db.Table("issues").Where("project_id = ?", projectID).Count(&total).Error; err != nil {
-		logrus.Errorf("Repository: stats error (total) for project %d: %v", projectID, err)
-		return nil, err
-	}
-
-	if err := r.db.Table("issues").Where("project_id = ? AND closed_time IS NOT NULL", projectID).Count(&closed).Error; err != nil {
-		logrus.Errorf("Repository: stats error (closed) for project %d: %v", projectID, err)
-		return nil, err
-	}
-
-	return map[string]interface{}{
-		"total_tasks":  total,
-		"closed_tasks": closed,
-		"open_tasks":   total - closed,
-	}, nil
-}
-
 func (r *ProjectRepository) UpdateProject(project *models.Project) error {
 	err := r.db.Table("projects").Where("id = ?", project.ID).Updates(project).Error
 	if err != nil {
@@ -181,4 +143,13 @@ func (r *ProjectRepository) GetDryStatistics(projectID int) (map[string]interfac
 		"avg_lead_time_h":   avgLeadValue,
 		"avg_daily_weekly":  math.Round(float64(weeklyCount)/7.0*100) / 100,
 	}, nil
+}
+
+func (r *ProjectRepository) Exists(id int) (bool, error) {
+	project, err := r.GetProjectByID(id)
+	if err != nil {
+		return false, err
+	}
+
+	return project != nil, nil
 }

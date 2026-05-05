@@ -118,7 +118,10 @@ func TestProjectsHandler_SearchFilter(t *testing.T) {
 
 	var resp ProjectsResponse
 
-	_ = json.NewDecoder(w.Body).Decode(&resp)
+	err := json.NewDecoder(w.Body).Decode(&resp)
+	if err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
 
 	if len(resp.Projects) != 1 {
 		t.Fatalf("expected filtered result")

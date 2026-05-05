@@ -53,8 +53,16 @@ func (s *analyticsService) RunFullAnalysis(projectID int) {
 			}) {
 				defer wg.Done()
 
+				defer func() {
+					if r := recover(); r != nil {
+						logrus.Errorf("Critical: Task '%s' for project %d panicked: %v", t.name, projectID, r)
+					}
+				}()
+
 				logrus.Debugf("Executing sub-task: %s", t.name)
 				t.fn(ctx, projectID)
+
+				logrus.Infof("Sub-task '%s' finished", t.name)
 			}(task)
 		}
 
@@ -118,6 +126,10 @@ func (s *analyticsService) processLifeCycle(ctx context.Context, projectID int) 
 }
 
 func (s *analyticsService) saveSnapshot(ctx context.Context, projectID int, t string, data interface{}) {
+	if data == nil {
+		data = make(map[string]interface{})
+	}
+
 	jsonData, _ := json.Marshal(data)
 	snapshot := &models.AnalyticsSnapshot{
 		ProjectID:    projectID,

@@ -11,12 +11,14 @@ import (
 )
 
 type AnalyticsHandler struct {
-	service service.AnalyticsService
+	service        service.AnalyticsService
+	projectService service.ProjectService
 }
 
-func NewAnalyticsHandler(s service.AnalyticsService) *AnalyticsHandler {
+func NewAnalyticsHandler(s service.AnalyticsService, ps service.ProjectService) *AnalyticsHandler {
 	return &AnalyticsHandler{
-		service: s,
+		service:        s,
+		projectService: ps,
 	}
 }
 
@@ -24,6 +26,17 @@ func (h *AnalyticsHandler) GetAnalytics(w http.ResponseWriter, r *http.Request) 
 	projectID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		http.Error(w, "Invalid project ID", http.StatusBadRequest)
+		return
+	}
+
+	exists, err := h.projectService.Exists(projectID)
+	if err != nil {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	if !exists {
+		http.Error(w, "Project not found", http.StatusNotFound)
 		return
 	}
 
@@ -63,6 +76,17 @@ func (h *AnalyticsHandler) Recalculate(w http.ResponseWriter, r *http.Request) {
 	projectID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		http.Error(w, "Invalid project ID", http.StatusBadRequest)
+		return
+	}
+
+	exists, err := h.projectService.Exists(projectID)
+	if err != nil {
+		http.Error(w, "Internal error checking project", http.StatusInternalServerError)
+		return
+	}
+
+	if !exists {
+		http.Error(w, "Project not found", http.StatusNotFound)
 		return
 	}
 

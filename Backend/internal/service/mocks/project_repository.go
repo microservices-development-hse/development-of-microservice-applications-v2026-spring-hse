@@ -48,6 +48,34 @@ func (_m *ProjectRepository) DeleteProject(id int) error {
 	return r0
 }
 
+// Exists provides a mock function with given fields: id
+func (_m *ProjectRepository) Exists(id int) (bool, error) {
+	ret := _m.Called(id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Exists")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(int) (bool, error)); ok {
+		return rf(id)
+	}
+	if rf, ok := ret.Get(0).(func(int) bool); ok {
+		r0 = rf(id)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(int) error); ok {
+		r1 = rf(id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetAllProjects provides a mock function with given fields: limit, offset
 func (_m *ProjectRepository) GetAllProjects(limit int, offset int) ([]models.Project, int, error) {
 	ret := _m.Called(limit, offset)
@@ -86,34 +114,34 @@ func (_m *ProjectRepository) GetAllProjects(limit int, offset int) ([]models.Pro
 }
 
 // GetBasicStats provides a mock function with given fields: projectID
-func (_m *ProjectRepository) GetBasicStats(projectID int) (map[string]interface{}, error) {
-	ret := _m.Called(projectID)
+// func (_m *ProjectRepository) GetBasicStats(projectID int) (map[string]interface{}, error) {
+// 	ret := _m.Called(projectID)
 
-	if len(ret) == 0 {
-		panic("no return value specified for GetBasicStats")
-	}
+// 	if len(ret) == 0 {
+// 		panic("no return value specified for GetBasicStats")
+// 	}
 
-	var r0 map[string]interface{}
-	var r1 error
-	if rf, ok := ret.Get(0).(func(int) (map[string]interface{}, error)); ok {
-		return rf(projectID)
-	}
-	if rf, ok := ret.Get(0).(func(int) map[string]interface{}); ok {
-		r0 = rf(projectID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]interface{})
-		}
-	}
+// 	var r0 map[string]interface{}
+// 	var r1 error
+// 	if rf, ok := ret.Get(0).(func(int) (map[string]interface{}, error)); ok {
+// 		return rf(projectID)
+// 	}
+// 	if rf, ok := ret.Get(0).(func(int) map[string]interface{}); ok {
+// 		r0 = rf(projectID)
+// 	} else {
+// 		if ret.Get(0) != nil {
+// 			r0 = ret.Get(0).(map[string]interface{})
+// 		}
+// 	}
 
-	if rf, ok := ret.Get(1).(func(int) error); ok {
-		r1 = rf(projectID)
-	} else {
-		r1 = ret.Error(1)
-	}
+// 	if rf, ok := ret.Get(1).(func(int) error); ok {
+// 		r1 = rf(projectID)
+// 	} else {
+// 		r1 = ret.Error(1)
+// 	}
 
-	return r0, r1
-}
+// 	return r0, r1
+// }
 
 // GetDryStatistics provides a mock function with given fields: projectID
 func (_m *ProjectRepository) GetDryStatistics(projectID int) (map[string]interface{}, error) {
@@ -176,34 +204,34 @@ func (_m *ProjectRepository) GetProjectByID(id int) (*models.Project, error) {
 }
 
 // GetProjectByKey provides a mock function with given fields: key
-func (_m *ProjectRepository) GetProjectByKey(key string) (*models.Project, error) {
-	ret := _m.Called(key)
+// func (_m *ProjectRepository) GetProjectByKey(key string) (*models.Project, error) {
+// 	ret := _m.Called(key)
 
-	if len(ret) == 0 {
-		panic("no return value specified for GetProjectByKey")
-	}
+// 	if len(ret) == 0 {
+// 		panic("no return value specified for GetProjectByKey")
+// 	}
 
-	var r0 *models.Project
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (*models.Project, error)); ok {
-		return rf(key)
-	}
-	if rf, ok := ret.Get(0).(func(string) *models.Project); ok {
-		r0 = rf(key)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.Project)
-		}
-	}
+// 	var r0 *models.Project
+// 	var r1 error
+// 	if rf, ok := ret.Get(0).(func(string) (*models.Project, error)); ok {
+// 		return rf(key)
+// 	}
+// 	if rf, ok := ret.Get(0).(func(string) *models.Project); ok {
+// 		r0 = rf(key)
+// 	} else {
+// 		if ret.Get(0) != nil {
+// 			r0 = ret.Get(0).(*models.Project)
+// 		}
+// 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(key)
-	} else {
-		r1 = ret.Error(1)
-	}
+// 	if rf, ok := ret.Get(1).(func(string) error); ok {
+// 		r1 = rf(key)
+// 	} else {
+// 		r1 = ret.Error(1)
+// 	}
 
-	return r0, r1
-}
+// 	return r0, r1
+// }
 
 // UpdateProject provides a mock function with given fields: project
 func (_m *ProjectRepository) UpdateProject(project *models.Project) error {

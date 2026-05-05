@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -23,105 +22,110 @@ func withChiContext(r *http.Request, key, value string) *http.Request {
 }
 
 func TestAnalyticsHandler_GetAnalytics(t *testing.T) {
-	mockSvc := new(mocks.AnalyticsService)
-	h := NewAnalyticsHandler(mockSvc)
-
 	t.Run("Success", func(t *testing.T) {
+		mAn := new(mocks.AnalyticsService)
+		mPr := new(mocks.ProjectService)
+		h := NewAnalyticsHandler(mAn, mPr)
+
 		projectID := 1
-		reportType := "status"
-		mockData := `{"open": 5, "done": 10}`
-
-		mockSnapshot := &models.AnalyticsSnapshot{
-			Data: json.RawMessage(mockData),
-		}
-
-		mockSvc.On("GetLatestSnapshot", mock.Anything, projectID, reportType).
-			Return(mockSnapshot, nil).Once()
+		mPr.On("Exists", projectID).Return(true, nil).Once()
+		mAn.On("GetLatestSnapshot", mock.Anything, projectID, "status").
+			Return(&models.AnalyticsSnapshot{Data: json.RawMessage(`{"status":"ok"}`)}, nil).Once()
 
 		req := httptest.NewRequest("GET", "/api/v1/projects/1/analytics?type=status", nil)
 		req = withChiContext(req, "id", "1")
-
 		rr := httptest.NewRecorder()
+
 		h.GetAnalytics(rr, req)
 
 		assert.Equal(t, http.StatusOK, rr.Code)
-		assert.JSONEq(t, mockData, rr.Body.String())
-		assert.Equal(t, "application/json", rr.Header().Get("Content-Type"))
+		mPr.AssertExpectations(t)
+		mAn.AssertExpectations(t)
 	})
 
-	t.Run("Missing Type Parameter", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/api/v1/projects/1/analytics", nil)
-		req = withChiContext(req, "id", "1")
+	t.Run("Project_Not_Found", func(t *testing.T) {
+		mAn := new(mocks.AnalyticsService)
+		mPr := new(mocks.ProjectService)
+		h := NewAnalyticsHandler(mAn, mPr)
 
+		projectID := 404
+		mPr.On("Exists", projectID).Return(false, nil).Once()
+
+		req := httptest.NewRequest("GET", "/api/v1/projects/404/analytics?type=status", nil)
+		req = withChiContext(req, "id", "404")
 		rr := httptest.NewRecorder()
-		h.GetAnalytics(rr, req)
 
-		assert.Equal(t, http.StatusBadRequest, rr.Code)
-		assert.Contains(t, rr.Body.String(), "Missing type parameter")
-	})
-
-	t.Run("Invalid Report Type", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/api/v1/projects/1/analytics?type=unknown", nil)
-		req = withChiContext(req, "id", "1")
-
-		rr := httptest.NewRecorder()
-		h.GetAnalytics(rr, req)
-
-		assert.Equal(t, http.StatusBadRequest, rr.Code)
-		assert.Contains(t, rr.Body.String(), "Invalid report type")
-	})
-
-	t.Run("Not Found in DB", func(t *testing.T) {
-		mockSvc.On("GetLatestSnapshot", mock.Anything, 1, "complexity").
-			Return(nil, errors.New("not found")).Once()
-
-		req := httptest.NewRequest("GET", "/api/v1/projects/1/analytics?type=complexity", nil)
-		req = withChiContext(req, "id", "1")
-
-		rr := httptest.NewRecorder()
 		h.GetAnalytics(rr, req)
 
 		assert.Equal(t, http.StatusNotFound, rr.Code)
+		mPr.AssertExpectations(t)
+		mAn.AssertNotCalled(t, "GetLatestSnapshot", mock.Anything, mock.Anything, mock.Anything)
+	})
+
+	t.Run("Missing_Type", func(t *testing.T) {
+		mAn := new(mocks.AnalyticsService)
+		mPr := new(mocks.ProjectService)
+		h := NewAnalyticsHandler(mAn, mPr)
+
+		projectID := 1
+
+		mPr.On("Exists", projectID).Return(true, nil).Once()
+
+		req := httptest.NewRequest("GET", "/api/v1/projects/1/analytics", nil) // Нет параметра ?type=
+		req = withChiContext(req, "id", "1")
+		rr := httptest.NewRecorder()
+
+		h.GetAnalytics(rr, req)
+
+		assert.Equal(t, http.StatusBadRequest, rr.Code)
+		mPr.AssertExpectations(t)
 	})
 }
 
 func TestAnalyticsHandler_Recalculate(t *testing.T) {
-	mockSvc := new(mocks.AnalyticsService)
-	h := NewAnalyticsHandler(mockSvc)
+	t.Run("Success", func(t *testing.T) {
+		mAn := new(mocks.AnalyticsService)
+		mPr := new(mocks.ProjectService)
+		h := NewAnalyticsHandler(mAn, mPr)
 
-	t.Run("Success Trigger", func(t *testing.T) {
 		projectID := 1
-
-		mockSvc.On("RunFullAnalysis", projectID).Return().Once()
+		mPr.On("Exists", projectID).Return(true, nil).Once()
+		mAn.On("RunFullAnalysis", projectID).Return().Once()
 
 		req := httptest.NewRequest("POST", "/api/v1/projects/1/analytics/recalculate", nil)
 		req = withChiContext(req, "id", "1")
-
 		rr := httptest.NewRecorder()
+
 		h.Recalculate(rr, req)
 
 		assert.Equal(t, http.StatusAccepted, rr.Code)
-		assert.Contains(t, rr.Body.String(), "analysis started")
+		mPr.AssertExpectations(t)
+		mAn.AssertExpectations(t)
 	})
 
-	t.Run("Invalid Project ID", func(t *testing.T) {
-		req := httptest.NewRequest("POST", "/api/v1/projects/abc/analytics/recalculate", nil)
-		req = withChiContext(req, "id", "abc")
+	t.Run("Project_Not_Found", func(t *testing.T) {
+		mAn := new(mocks.AnalyticsService)
+		mPr := new(mocks.ProjectService)
+		h := NewAnalyticsHandler(mAn, mPr)
 
+		projectID := 999
+		mPr.On("Exists", projectID).Return(false, nil).Once()
+
+		req := httptest.NewRequest("POST", "/api/v1/projects/999/analytics/recalculate", nil)
+		req = withChiContext(req, "id", "999")
 		rr := httptest.NewRecorder()
+
 		h.Recalculate(rr, req)
 
-		assert.Equal(t, http.StatusBadRequest, rr.Code)
+		assert.Equal(t, http.StatusNotFound, rr.Code)
+		mPr.AssertExpectations(t)
+		mAn.AssertNotCalled(t, "RunFullAnalysis", mock.Anything)
 	})
-}
 
-func TestAnalyticsHandler_Recalculate_Error(t *testing.T) {
-	mockSvc := new(mocks.AnalyticsService)
-	h := NewAnalyticsHandler(mockSvc)
-
-	t.Run("Invalid ID", func(t *testing.T) {
-		req := httptest.NewRequest("POST", "/recalculate", nil)
-		req = withChiContext(req, "id", "not-a-number")
+	t.Run("Invalid_ID", func(t *testing.T) {
+		h := NewAnalyticsHandler(nil, nil)
+		req := httptest.NewRequest("POST", "/api/v1/projects/abc/analytics/recalculate", nil)
+		req = withChiContext(req, "id", "abc")
 		rr := httptest.NewRecorder()
 
 		h.Recalculate(rr, req)

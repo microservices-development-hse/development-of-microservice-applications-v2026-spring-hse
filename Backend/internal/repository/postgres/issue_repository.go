@@ -1,7 +1,6 @@
 package postgres
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -26,18 +25,6 @@ func (r *IssueRepository) CreateIssue(issue *models.Issue) error {
 	}
 
 	logrus.Infof("Issue %s created successfully", issue.Key)
-
-	return nil
-}
-
-func (r *IssueRepository) UpdateIssue(issue *models.Issue) error {
-	err := r.db.Save(issue).Error
-	if err != nil {
-		logrus.Errorf("Failed to update issue %s: %v", issue.Key, err)
-		return fmt.Errorf("repository error: %w", err)
-	}
-
-	logrus.Infof("Issue %s updated successfully", issue.Key)
 
 	return nil
 }
@@ -72,37 +59,16 @@ func (r *IssueRepository) GetIssuesByProjectID(projectID int, limit, offset int)
 	return issues, int(totalCount), nil
 }
 
-func (r *IssueRepository) GetIssueByExternalID(externalID string) (*models.Issue, error) {
-	var issue models.Issue
-
-	err := r.db.Where("external_id = ?", externalID).First(&issue).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-
-		logrus.Errorf("Failed to find issue by external ID %s: %v", externalID, err)
-
-		return nil, fmt.Errorf("repository error: %w", err)
-	}
-
-	return &issue, nil
-}
-
-func (r *IssueRepository) DeleteIssue(id int) error {
-	err := r.db.Delete(&models.Issue{}, id).Error
-	if err != nil {
-		logrus.Errorf("Failed to delete issue ID %d: %v", id, err)
-		return fmt.Errorf("repository error: %w", err)
-	}
-
-	logrus.Infof("Issue ID %d deleted successfully", id)
-
-	return nil
-}
-
 func (r *IssueRepository) UpdateIssueWithHistory(issue *models.Issue, fromStatus string) error {
 	err := r.db.Transaction(func(tx *gorm.DB) error {
+		isFinalStatus := issue.Status == "Closed" || issue.Status == "Resolved" || issue.Status == "Done"
+		if isFinalStatus && issue.ClosedTime == nil {
+			now := time.Now()
+			issue.ClosedTime = &now
+		} else if !isFinalStatus {
+			issue.ClosedTime = nil
+		}
+
 		if err := tx.Save(issue).Error; err != nil {
 			return fmt.Errorf("failed to save issue: %w", err)
 		}
@@ -110,10 +76,12 @@ func (r *IssueRepository) UpdateIssueWithHistory(issue *models.Issue, fromStatus
 		if fromStatus != "" && fromStatus != issue.Status {
 			change := models.StatusChanges{
 				IssueID:    issue.ID,
+				AuthorID:   issue.AuthorID,
 				FromStatus: fromStatus,
 				ToStatus:   issue.Status,
 				ChangeTime: time.Now(),
 			}
+
 			if err := tx.Create(&change).Error; err != nil {
 				return fmt.Errorf("failed to create status change record: %w", err)
 			}
