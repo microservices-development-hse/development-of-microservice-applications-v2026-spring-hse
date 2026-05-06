@@ -7,17 +7,18 @@ ProgramSettings:
 DBSettings:
   dbUser: "pguser"
   dbPassword: "pgpassword"
-  dbHost: "localhost"
+  dbHost: "postgres"
   dbPort: 5432
   dbName: "testdb"
 
 ExternalServices:
-  connectorURL: "http://localhost:8081"
+  connectorURL: "http://dev_connector:8081"
 
 CorsSettings:
   allowedOrigins: 
     - "http://localhost:4200"
     - "http://localhost:8000"
+    - "http://localhost:3000"
   allowedMethods:
     - "GET"
     - "POST"
