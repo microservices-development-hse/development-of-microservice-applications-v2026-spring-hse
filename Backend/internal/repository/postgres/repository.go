@@ -30,12 +30,10 @@ func InitializeRepositories(cfg *config.Config) (*Repositories, error) {
 		cfg.DBSettings.DBName, cfg.DBSettings.DBPort,
 	)
 
-	// db, err := gorm.Open(gorm_postgres.Open(dsn), &gorm.Config{})
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to connect database: %w", err)
-	// }
-	var db *gorm.DB
-	var err error
+	var (
+		db  *gorm.DB
+		err error
+	)
 
 	for i := 0; i < 10; i++ {
 		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
