@@ -26,7 +26,7 @@ func main() {
 		logrus.Fatalf("Config error: %v", err)
 	}
 
-	conn, err := grpc.NewClient("localhost:50051",
+	conn, err := grpc.NewClient("dev_connector:50051",
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		logrus.Fatalf("did not connect: %v", err)
