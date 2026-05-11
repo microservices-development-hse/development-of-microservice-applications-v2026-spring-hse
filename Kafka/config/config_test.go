@@ -22,6 +22,7 @@ Server:
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	defer func() { _ = os.Remove(tmp.Name()) }()
 
 	_, _ = tmp.Write([]byte(content))
@@ -49,6 +50,7 @@ func TestLoad_InvalidYAML(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	defer func() { _ = os.Remove(file.Name()) }()
 
 	_, err = file.WriteString("Kafka: [:::]")
@@ -70,6 +72,7 @@ func TestLoad_InvalidYAML(t *testing.T) {
 
 func TestLoad_InvalidValidate(t *testing.T) {
 	tmp, _ := os.CreateTemp("", "cfg-*.yaml")
+
 	defer func() { _ = os.Remove(tmp.Name()) }()
 
 	_, _ = tmp.Write([]byte("::::invalid yaml::::"))

@@ -35,6 +35,7 @@ func main() {
 
 	// ── Producer ──
 	p := producer.New(cfg)
+
 	defer func() {
 		if err := p.Close(); err != nil {
 			logger.Info("producer close error: %v", err)
@@ -46,6 +47,7 @@ func main() {
 	if err != nil {
 		logger.Error("consumer init failed: %v", err)
 	}
+
 	defer func() { _ = c.Close() }()
 
 	// ── HTTP server ──

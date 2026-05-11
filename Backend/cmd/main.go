@@ -45,7 +45,7 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	services := service.InitializeServices(repos, grpcClient)
+	services := service.InitializeServices(repos, grpcClient, "http://localhost:8082")
 	handlers := handler.InitializeHandlers(services)
 	r := handler.NewRouter(cfg, handlers)
 	addr := fmt.Sprintf("%s:%d", cfg.ProgramSettings.BindAddress, cfg.ProgramSettings.BindPort)
