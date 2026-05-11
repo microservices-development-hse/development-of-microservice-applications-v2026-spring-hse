@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	"encoding/json"
@@ -9,13 +9,16 @@ import (
 	"time"
 
 	"github.com/microservices-development-hse/auth/internal/models"
+	"github.com/microservices-development-hse/auth/internal/repository/postgres"
 	"github.com/microservices-development-hse/auth/internal/service"
-	"gorm.io/driver/postgres"
+	gorm_postgres "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-var db *gorm.DB
-var jwtSecret string
+var (
+	userRepo  *postgres.UserRepository
+	jwtSecret string
+)
 
 func main() {
 	// 1. Загружаем конфиг из окружения
@@ -27,19 +30,23 @@ func main() {
 		log.Fatal("JWT_SECRET environment variable is not set")
 	}
 
-	// 2. Подключаемся к БД
+	// 2. Подключаемся к БД с механизмом Retry
+	var db *gorm.DB
 	var err error
-	for i := 0; i < 5; i++ {
-		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	for i := 0; i < 10; i++ {
+		db, err = gorm.Open(gorm_postgres.Open(dsn), &gorm.Config{})
 		if err == nil {
 			break
 		}
-		log.Printf("Failed to connect to database, retrying in 5s... (%d/5)", i+1)
+		log.Printf("Failed to connect to database, retrying in 5s... (%d/10)", i+1)
 		time.Sleep(5 * time.Second)
 	}
 	if err != nil {
 		log.Fatal("Could not connect to database after retries")
 	}
+
+	// Инициализируем репозиторий
+	userRepo = postgres.NewUserRepository(db)
 
 	// 3. Роуты
 	http.HandleFunc("/register", handleRegister)
@@ -49,7 +56,6 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8081", nil))
 }
 
-// Обработка регистрации
 func handleRegister(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -66,7 +72,6 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Хешируем пароль
 	hashedPassword, err := service.HashPassword(input.Password)
 	if err != nil {
 		http.Error(w, "Error processing password", http.StatusInternalServerError)
@@ -78,7 +83,8 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 		PasswordHash: hashedPassword,
 	}
 
-	if err := db.Create(&user).Error; err != nil {
+	// Используем репозиторий вместо прямого вызова DB
+	if err := userRepo.CreateUser(&user); err != nil {
 		http.Error(w, "User already exists or DB error", http.StatusConflict)
 		return
 	}
@@ -87,7 +93,6 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"message": "User created successfully"})
 }
 
-// Обработка логина
 func handleLogin(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -104,20 +109,18 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Ищем пользователя
-	var user models.User
-	if err := db.Where("email = ?", input.Email).First(&user).Error; err != nil {
+	// Используем репозиторий для поиска пользователя
+	user, err := userRepo.GetByEmail(input.Email)
+	if err != nil {
 		http.Error(w, "Invalid email or password", http.StatusUnauthorized)
 		return
 	}
 
-	// Проверяем пароль
 	if !service.CheckPasswordHash(input.Password, user.PasswordHash) {
 		http.Error(w, "Invalid email or password", http.StatusUnauthorized)
 		return
 	}
 
-	// Генерируем токен
 	token, err := service.GenerateToken(user.ID, jwtSecret)
 	if err != nil {
 		http.Error(w, "Error generating token", http.StatusInternalServerError)

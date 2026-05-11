@@ -48,11 +48,12 @@ func main() {
 	services := service.InitializeServices(repos, grpcClient, cfg.ExternalServices.KafkaServiceURL)
 	handlers := handler.InitializeHandlers(services)
 	r := handler.NewRouter(cfg, handlers)
+	protectedRouter := handler.LoggingMiddleware(handler.AuthMiddleware(r))
 	addr := fmt.Sprintf("%s:%d", cfg.ProgramSettings.BindAddress, cfg.ProgramSettings.BindPort)
 
-	logrus.Infof("Server is starting at %s", addr)
+	logrus.Infof("Server is starting at %s (protected by JWT)", addr)
 
-	if err := http.ListenAndServe(addr, r); err != nil {
+	if err := http.ListenAndServe(addr, protectedRouter); err != nil {
 		logrus.Fatalf("Server failed: %v", err)
 	}
 }
