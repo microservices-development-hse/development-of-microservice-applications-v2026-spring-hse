@@ -23,11 +23,32 @@ services:
       retries: 5
       start_period: 30s
 
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: dev_zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  kafka:
+    build: ./Kafka
+    container_name: dev_kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    ports:
+      - "9092:9092"
+
   backend:
     build: ./Backend
     container_name: dev_backend
     restart: unless-stopped
     environment:
+      # - KAFKA_BROKERS=kafka:9092
+
       - DB_USER=${POSTGRES_USER}
       - DB_PASSWORD=${POSTGRES_PASSWORD}
       - DB_NAME=${POSTGRES_DB}
@@ -44,6 +65,8 @@ services:
     container_name: dev_connector
     restart: unless-stopped
     environment:
+      # - KAFKA_BROKERS=kafka:9092
+
       - DB_USER=${POSTGRES_USER}
       - DB_PASSWORD=${POSTGRES_PASSWORD}
       - DB_NAME=${POSTGRES_DB}
