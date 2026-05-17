@@ -61,28 +61,24 @@ export class ComparePageComponent implements OnInit {
     const ids: number[] = [];
 
     this.checked.forEach((value: number, key: string) => {
-      if (value !== null && value !== undefined) {
+      if (value !== null && value !== undefined && value > 0) {
         items.push(key);
         ids.push(value);
       }
     });
 
     if (items.length > 3) {
-      this.showErrorMessage('Максимальное число проектов 3');
-      return;
+      this.showErrorMessage("Максимальное число проектов 3");
+    } else if (items.length <= 1) {
+      this.showErrorMessage("Минимальное число проектов для сравнения 2.");
+    } else {
+      this.router.navigate(['/compare-projects'], {
+        queryParams: {
+          keys: items,
+          projectIds: ids
+        }
+      });
     }
-
-    if (items.length <= 1) {
-      this.showErrorMessage('Минимальное число проектов для сравнения 2.');
-      return;
-    }
-
-    this.router.navigate(['/compare-projects'], {
-      queryParams: {
-        keys: items,
-        value: ids
-      }
-    });
   }
 
   showErrorMessage(msg: string): void {
