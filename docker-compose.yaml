@@ -23,6 +23,21 @@ services:
       retries: 5
       start_period: 30s
 
+  pgadmin:
+    image: dpage/pgadmin4:7
+    container_name: dev_pgadmin
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "${PGADMIN_PORT}:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: dev_zookeeper
@@ -32,8 +47,7 @@ services:
   kafka:
     build: ./Kafka
     container_name: dev_kafka
-    depends_on:
-      - zookeeper
+    restart: unless-stopped
     environment:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
@@ -41,14 +55,16 @@ services:
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     ports:
       - "9092:9092"
+    volumes:
+      - ./logs/kafka:/root/logs
+    depends_on:
+      - zookeeper
 
   backend:
     build: ./Backend
     container_name: dev_backend
     restart: unless-stopped
     environment:
-      # - KAFKA_BROKERS=kafka:9092
-
       - DB_USER=${POSTGRES_USER}
       - DB_PASSWORD=${POSTGRES_PASSWORD}
       - DB_NAME=${POSTGRES_DB}
@@ -56,6 +72,8 @@ services:
       - DB_PORT=5432
     ports:
       - "8000:8000"
+    volumes:
+      - ./logs/backend:/root/logs
     depends_on:
       postgres:
         condition: service_started
@@ -65,16 +83,19 @@ services:
     container_name: dev_connector
     restart: unless-stopped
     environment:
-      # - KAFKA_BROKERS=kafka:9092
-
       - DB_USER=${POSTGRES_USER}
       - DB_PASSWORD=${POSTGRES_PASSWORD}
       - DB_NAME=${POSTGRES_DB}
       - DB_HOST=postgres
       - DB_PORT=5432
+    ports:
+      - "8081:8081"
+      - "50051:50051"
+    volumes:
+      - ./logs/connector:/root/logs
     depends_on:
       postgres:
-        condition: service_started
+        condition: service_healthy
 
   ui:
     build: ./UI
