@@ -35,11 +35,19 @@ func New(port int, p producerIface) *Server {
 }
 
 func (s *Server) Start() error {
-	return fmt.Errorf("listen and serve: %w", s.httpServer.ListenAndServe())
+	if err := s.httpServer.ListenAndServe(); err != nil {
+		return fmt.Errorf("listen and serve: %w", err)
+	}
+
+	return nil
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {
-	return fmt.Errorf("shutdown: %w", s.httpServer.Shutdown(ctx))
+	if err := s.httpServer.Shutdown(ctx); err != nil {
+		return fmt.Errorf("shutdown: %w", err)
+	}
+
+	return nil
 }
 
 func (s *Server) handleImport(w http.ResponseWriter, r *http.Request) {

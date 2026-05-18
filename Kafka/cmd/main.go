@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"errors"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -63,7 +65,7 @@ func main() {
 		logger.Info("shutdown signal received")
 		cancel()
 
-		if err := srv.Shutdown(context.Background()); err != nil {
+		if err := srv.Shutdown(context.Background()); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logger.Error("server shutdown failed: %v", err)
 		}
 	}()

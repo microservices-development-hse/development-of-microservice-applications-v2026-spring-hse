@@ -13,6 +13,7 @@ DBSettings:
 
 ExternalServices:
   connectorURL: "http://dev_connector:8081"
+  kafkaServiceURL: "http://dev_kafka_service:8082"
 
 CorsSettings:
   allowedOrigins: 
