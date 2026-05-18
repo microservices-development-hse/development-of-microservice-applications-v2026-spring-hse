@@ -10,14 +10,21 @@ start:
 stop:
 	sudo docker-compose stop
 
-# Полная очистка системы (удаление контейнеров и данных БД)
+# Полная очистка системы (удаление контейнеров, данных БД и файловых логов)
 clean:
 	sudo docker-compose down -v
+	sudo rm -rf logs/*/
 
-# Просмотр логов бэкенда
+# Просмотр консольных логов
 logs-backend:
 	docker logs -f dev_backend
 
-# Просмотр логов коннектора
 logs-connector:
 	docker logs -f dev_connector
+
+# Просмотр файловых логов
+file-logs-backend:
+	cat logs/backend/logs.log
+
+file-logs-connector:
+	cat logs/connector/logs.log
