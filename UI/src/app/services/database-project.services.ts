@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
-import { map } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { IRequest } from '../models/request.model';
 import { IRequestObject } from '../models/requestObj.model';
 
@@ -10,12 +9,11 @@ import { IRequestObject } from '../models/requestObj.model';
   providedIn: 'root'
 })
 export class DatabaseProjectServices {
-  private urlPath: string = 'http://localhost:8000/api/v1'; // Временное решение
+  private urlPath: string = 'http://localhost:8000/api/v1';
 
-  constructor(private http: HttpClient) {
-  }
+  constructor(private http: HttpClient) {}
 
-   getAll(): Observable<IRequest> {
+  getAll(): Observable<IRequest> {
     const url = `${this.urlPath}/projects`;
 
     return this.http.get<any>(url).pipe(
@@ -66,64 +64,23 @@ export class DatabaseProjectServices {
     );
   }
 
-  getComplitedGraph(taskNumber: string, projectName: Array<string>): Observable<IRequestObject> {
-    const url = `${this.urlPath}/graph/compare`;
-    return this.http.post<IRequestObject>(url, { task: taskNumber, projects: projectName }).pipe(
+  recalculateProject(id: string): Observable<any> {
+    const url = `${this.urlPath}/projects/${encodeURIComponent(id)}/analytics/recalculate`;
+    return this.http.post<any>(url, {}).pipe(
       catchError(err => {
-        console.error('DatabaseProjectServices.getComplitedGraph error', err);
+        console.error('DatabaseProjectServices.recalculateProject error', err);
         return throwError(() => err);
       })
     );
   }
 
-  getGraph(taskNumber: string, projectName: string): Observable<IRequestObject> {
-    const params = new HttpParams().set('task', taskNumber).set('project', projectName);
-    const url = `${this.urlPath}/graph/get`;
-    return this.http.get<IRequestObject>(url, { params }).pipe(
-      catchError(err => {
-        console.error('DatabaseProjectServices.getGraph error', err);
-        return throwError(() => err);
-      })
-    );
-  }
+  getAnalytics(id: string, type: string): Observable<any> {
+    const url = `${this.urlPath}/projects/${encodeURIComponent(id)}/analytics`;
+    const params = new HttpParams().set('type', type);
 
-  makeGraph(taskNumber: string, projectName: string): Observable<IRequestObject> {
-    const url = `${this.urlPath}/graph/make`;
-    return this.http.post<IRequestObject>(url, { task: taskNumber, project: projectName }).pipe(
+    return this.http.get<any>(url, { params }).pipe(
       catchError(err => {
-        console.error('DatabaseProjectServices.makeGraph error', err);
-        return throwError(() => err);
-      })
-    );
-  }
-
-  deleteGraphs(projectName: string): Observable<IRequestObject> {
-    const url = `${this.urlPath}/graph/delete`;
-    return this.http.request<IRequestObject>('delete', url, { body: { project: projectName } }).pipe(
-      catchError(err => {
-        console.error('DatabaseProjectServices.deleteGraphs error', err);
-        return throwError(() => err);
-      })
-    );
-  }
-
-  isAnalyzed(projectName: string): Observable<IRequestObject> {
-    const url = `${this.urlPath}/isAnalyzed`;
-    const params = new HttpParams().set('project', projectName);
-    return this.http.get<IRequestObject>(url, { params }).pipe(
-      catchError(err => {
-        console.error('DatabaseProjectServices.isAnalyzed error', err);
-        return throwError(() => err);
-      })
-    );
-  }
-
-  isEmpty(projectName: string): Observable<IRequestObject> {
-    const url = `${this.urlPath}/isEmpty`;
-    const params = new HttpParams().set('project', projectName);
-    return this.http.get<IRequestObject>(url, { params }).pipe(
-      catchError(err => {
-        console.error('DatabaseProjectServices.isEmpty error', err);
+        console.error('DatabaseProjectServices.getAnalytics error', err);
         return throwError(() => err);
       })
     );
