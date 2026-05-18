@@ -1,8 +1,11 @@
 package service
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
 
 	pb "github.com/microservices-development-hse/backend/internal/generated/connector"
 	"github.com/microservices-development-hse/backend/internal/models"
@@ -14,19 +17,23 @@ type ConnectorService interface {
 }
 
 type connectorService struct {
-	client pb.ConnectorServiceClient
+	grpcClient pb.ConnectorServiceClient
+	kafkaURL   string
+	httpClient *http.Client
 }
 
-func NewConnectorService(client pb.ConnectorServiceClient) ConnectorService {
+func NewConnectorService(client pb.ConnectorServiceClient, kafkaURL string) ConnectorService {
 	return &connectorService{
-		client: client,
+		grpcClient: client,
+		kafkaURL:   kafkaURL,
+		httpClient: &http.Client{},
 	}
 }
 
 func (s *connectorService) FetchRemoteProjects() ([]models.Project, error) {
 	ctx := context.Background()
 
-	resp, err := s.client.FetchRemoteProjects(ctx, &pb.Empty{})
+	resp, err := s.grpcClient.FetchRemoteProjects(ctx, &pb.Empty{})
 	if err != nil {
 		return nil, fmt.Errorf("gRPC call failed: %w", err)
 	}
@@ -41,17 +48,21 @@ func (s *connectorService) FetchRemoteProjects() ([]models.Project, error) {
 }
 
 func (s *connectorService) TriggerProjectImport(projectKey string) error {
-	ctx := context.Background()
+	body, _ := json.Marshal(map[string]string{"project_key": projectKey})
 
-	resp, err := s.client.TriggerProjectImport(ctx, &pb.ImportRequest{
-		ProjectKey: projectKey,
-	})
+	resp, err := s.httpClient.Post(
+		s.kafkaURL+"/import",
+		"application/json",
+		bytes.NewBuffer(body),
+	)
 	if err != nil {
-		return fmt.Errorf("gRPC import call failed: %w", err)
+		return fmt.Errorf("kafka service unavailable: %w", err)
 	}
 
-	if !resp.GetSuccess() {
-		return fmt.Errorf("connector failed to start import: %s", resp.GetMessage())
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("kafka service returned: %d", resp.StatusCode)
 	}
 
 	return nil

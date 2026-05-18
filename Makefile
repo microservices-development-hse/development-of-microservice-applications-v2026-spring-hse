@@ -22,9 +22,15 @@ logs-backend:
 logs-connector:
 	docker logs -f dev_connector
 
+logs-kafka:
+	docker logs -f dev_kafka_service
+
 # Просмотр файловых логов
 file-logs-backend:
 	cat logs/backend/logs.log
 
 file-logs-connector:
 	cat logs/connector/logs.log
+
+file-logs-kafka:
+	cat logs/kafka/logs.log

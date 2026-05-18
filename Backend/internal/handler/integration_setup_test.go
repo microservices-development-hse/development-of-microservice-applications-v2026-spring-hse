@@ -52,7 +52,7 @@ func SetupIntegrationEnv(t *testing.T) *SharedTestEnv {
 
 	analyticsSvc := service.NewAnalyticsService(repos.Analytics)
 
-	connectorSvc := service.NewConnectorService(grpcClient)
+	connectorSvc := service.NewConnectorService(grpcClient, "http://localhost:8082")
 
 	h := &Handlers{
 		Project:   NewProjectHandler(projectSvc),

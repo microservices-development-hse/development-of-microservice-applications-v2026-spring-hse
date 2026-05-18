@@ -12,7 +12,7 @@ import (
 
 func TestConnectorService(t *testing.T) {
 	mockClient := mocks.NewConnectorServiceClient(t)
-	svc := NewConnectorService(mockClient)
+	svc := NewConnectorService(mockClient, "http://localhost:8082")
 
 	t.Run("FetchRemoteProjects - Success", func(t *testing.T) {
 		mockRPCResp := &pb.ProjectList{
@@ -59,7 +59,7 @@ func TestConnectorService(t *testing.T) {
 
 func TestConnectorService_Errors(t *testing.T) {
 	mockClient := mocks.NewConnectorServiceClient(t)
-	svc := NewConnectorService(mockClient)
+	svc := NewConnectorService(mockClient, "http://localhost:8082")
 
 	t.Run("FetchRemoteProjects - gRPC error", func(t *testing.T) {
 		mockClient.On("FetchRemoteProjects", mock.Anything, mock.Anything, mock.Anything).

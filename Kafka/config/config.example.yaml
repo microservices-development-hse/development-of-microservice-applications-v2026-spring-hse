@@ -1,0 +1,11 @@
+Kafka:
+  brokers:
+    - "kafka-broker:9092"
+  topic: "import-requests"
+  groupId: "connector-consumer-group"
+
+Connector:
+  grpcAddress: "connector:50051"
+
+Server:
+  port: 8082

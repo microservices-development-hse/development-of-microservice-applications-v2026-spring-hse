@@ -41,7 +41,8 @@ type ProgramConfig struct {
 }
 
 type ExternalServicesConfig struct {
-	ConnectorURL string `yaml:"connectorURL" validate:"required"`
+	ConnectorURL    string `yaml:"connectorURL" validate:"required"`
+	KafkaServiceURL string `yaml:"kafkaServiceURL"`
 }
 
 func LoadConfig(path string) (*Config, error) {
