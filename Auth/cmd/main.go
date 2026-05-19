@@ -52,8 +52,8 @@ func main() {
 	http.HandleFunc("/register", handleRegister)
 	http.HandleFunc("/login", handleLogin)
 
-	log.Println("Auth service starting on :8081...")
-	log.Fatal(http.ListenAndServe(":8081", nil))
+	log.Println("Auth service starting on :8083...")
+	log.Fatal(http.ListenAndServe(":8083", nil))
 }
 
 func handleRegister(w http.ResponseWriter, r *http.Request) {

@@ -133,7 +133,7 @@ services:
     container_name: dev_auth
     restart: unless-stopped
     ports:
-      - "8083:8081"
+      - "8083:8083"
     volumes:
       - ./logs/auth:/root/logs
     environment:
