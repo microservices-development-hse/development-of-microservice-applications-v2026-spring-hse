@@ -1,4 +1,4 @@
-version: "3.8"
+# version: "3.8"
 
 services:
   postgres:
@@ -133,7 +133,9 @@ services:
     container_name: dev_auth
     restart: unless-stopped
     ports:
-      - "8081:8081"
+      - "8082:8081"
+    volumes:
+      - ./logs/auth:/root/logs
     environment:
       - DB_USER=${POSTGRES_USER}
       - DB_PASSWORD=${POSTGRES_PASSWORD}
