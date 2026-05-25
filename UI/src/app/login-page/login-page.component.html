@@ -1,0 +1,35 @@
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <h1>Вход</h1>
+    <p>Введите почту и пароль для входа в Jira Analyzer</p>
+
+    <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+      <label for="email">Почта</label>
+      <input
+        id="email"
+        type="email"
+        name="email"
+        [(ngModel)]="email"
+        required
+        autocomplete="email"
+      />
+
+      <label for="password">Пароль</label>
+      <input
+        id="password"
+        type="password"
+        name="password"
+        [(ngModel)]="password"
+        required
+        autocomplete="current-password"
+      />
+
+      <button type="submit" [disabled]="loading || !loginForm.form.valid">
+        {{ loading ? 'Входим...' : 'Войти' }}
+      </button>
+    </form>
+
+    <div class="error" *ngIf="error">{{ error }}</div>
+  </div>
+</div>
+

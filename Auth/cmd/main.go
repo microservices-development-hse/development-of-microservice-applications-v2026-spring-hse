@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/microservices-development-hse/auth/internal/models"
@@ -20,17 +21,27 @@ var (
 	jwtSecret string
 )
 
+type loginResponse struct {
+	Token     string `json:"token"`
+	Email     string `json:"email"`
+	ExpiresAt int64  `json:"expiresAt"`
+}
+
 func main() {
-	// 1. Загружаем конфиг из окружения
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
-		os.Getenv("DB_HOST"), os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"), os.Getenv("DB_PORT"))
+	dsn := fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_NAME"),
+		os.Getenv("DB_PORT"),
+	)
 
 	jwtSecret = os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
 		log.Fatal("JWT_SECRET environment variable is not set")
 	}
 
-	// 2. Подключаемся к БД с механизмом Retry
 	var db *gorm.DB
 	var err error
 	for i := 0; i < 10; i++ {
@@ -45,15 +56,40 @@ func main() {
 		log.Fatal("Could not connect to database after retries")
 	}
 
-	// Инициализируем репозиторий
 	userRepo = postgres.NewUserRepository(db)
 
-	// 3. Роуты
-	http.HandleFunc("/register", handleRegister)
-	http.HandleFunc("/login", handleLogin)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/register", handleRegister)
+	mux.HandleFunc("/login", handleLogin)
+	mux.HandleFunc("/health", handleHealth)
 
 	log.Println("Auth service starting on :8083...")
-	log.Fatal(http.ListenAndServe(":8083", nil))
+	log.Fatal(http.ListenAndServe(":8083", withCORS(mux)))
+}
+
+func withCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:4200")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func handleHealth(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }
 
 func handleRegister(w http.ResponseWriter, r *http.Request) {
@@ -72,6 +108,14 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	input.Email = strings.TrimSpace(input.Email)
+	input.Password = strings.TrimSpace(input.Password)
+
+	if input.Email == "" || input.Password == "" {
+		http.Error(w, "email and password are required", http.StatusBadRequest)
+		return
+	}
+
 	hashedPassword, err := service.HashPassword(input.Password)
 	if err != nil {
 		http.Error(w, "Error processing password", http.StatusInternalServerError)
@@ -83,14 +127,14 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 		PasswordHash: hashedPassword,
 	}
 
-	// Используем репозиторий вместо прямого вызова DB
 	if err := userRepo.CreateUser(&user); err != nil {
 		http.Error(w, "User already exists or DB error", http.StatusConflict)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]string{"message": "User created successfully"})
+	_ = json.NewEncoder(w).Encode(map[string]string{"message": "User created successfully"})
 }
 
 func handleLogin(w http.ResponseWriter, r *http.Request) {
@@ -109,7 +153,8 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Используем репозиторий для поиска пользователя
+	input.Email = strings.TrimSpace(input.Email)
+
 	user, err := userRepo.GetByEmail(input.Email)
 	if err != nil {
 		http.Error(w, "Invalid email or password", http.StatusUnauthorized)
@@ -127,5 +172,11 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(map[string]string{"token": token})
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(loginResponse{
+		Token:     token,
+		Email:     user.Email,
+		ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
+	})
 }
+

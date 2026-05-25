@@ -1,4 +1,6 @@
 {
   "pathUrl": "http://localhost:8000",
-  "webUrl": "http://localhost:4200"
+  "webUrl": "http://localhost:3000",
+  "authUrl": "http://localhost:8083"
 }
+

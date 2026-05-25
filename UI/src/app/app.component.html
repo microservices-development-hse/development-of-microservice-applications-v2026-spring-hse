@@ -1,21 +1,24 @@
-<header>
+<header *ngIf="auth.isAuthenticated()">
   <div class="logo">
     <a href="http://{{webUrl}}/">
       <img src="/assets/images/logo.png" alt="Политех">
     </a>
   </div>
   <div class="rectangle">
-  <nav>
-    <ul class="topmenu_main">
-      <li><a routerLink="/projects">Проекты</a></li>
-      <li><a routerLink="/compare">Сравнение</a></li>
-      <li><a routerLink="/myprojects">Мои проекты</a></li>
-    </ul>
-  </nav>
+    <nav>
+      <ul class="topmenu_main">
+        <li><a routerLink="/projects">Проекты</a></li>
+        <li><a routerLink="/compare">Сравнение</a></li>
+        <li><a routerLink="/myprojects">Мои проекты</a></li>
+        <li><a routerLink="/logout">Выйти</a></li>
+      </ul>
+    </nav>
   </div>
 </header>
+
 <br>
 
 <div class="container">
   <router-outlet></router-outlet>
 </div>
+
