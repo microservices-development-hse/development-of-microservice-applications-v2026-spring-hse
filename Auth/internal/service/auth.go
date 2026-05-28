@@ -32,4 +32,3 @@ func GenerateToken(userID uint, secret string) (string, time.Time, error) {
 	signed, err := token.SignedString([]byte(secret))
 	return signed, expiresAt, err
 }
-

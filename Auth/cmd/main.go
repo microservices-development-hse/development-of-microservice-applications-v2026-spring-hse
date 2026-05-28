@@ -56,6 +56,10 @@ func main() {
 		log.Fatal("Could not connect to database after retries")
 	}
 
+	if err := db.AutoMigrate(&models.User{}); err != nil {
+		log.Fatalf("AutoMigrate failed: %v", err)
+	}
+
 	userRepo = postgres.NewUserRepository(db)
 
 	mux := http.NewServeMux()
@@ -68,8 +72,18 @@ func main() {
 }
 
 func withCORS(next http.Handler) http.Handler {
+	allowedOrigins := map[string]struct{}{
+		"http://localhost:4200": {},
+		"http://localhost:3000": {},
+	}
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:4200")
+		origin := r.Header.Get("Origin")
+		if _, ok := allowedOrigins[origin]; ok {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Vary", "Origin")
+		}
+
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
@@ -166,7 +180,7 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := service.GenerateToken(user.ID, jwtSecret)
+	token, expiresAt, err := service.GenerateToken(user.ID, jwtSecret)
 	if err != nil {
 		http.Error(w, "Error generating token", http.StatusInternalServerError)
 		return
@@ -176,7 +190,6 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(loginResponse{
 		Token:     token,
 		Email:     user.Email,
-		ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
+		ExpiresAt: expiresAt.Unix(),
 	})
 }
-

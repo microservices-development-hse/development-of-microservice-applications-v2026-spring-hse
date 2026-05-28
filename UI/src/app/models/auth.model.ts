@@ -9,6 +9,10 @@ export interface ILoginResponse {
   expiresAt: number;
 }
 
+export interface IRegisterResponse {
+  message: string;
+}
+
 export interface IAuthSession {
   token: string;
   email: string;

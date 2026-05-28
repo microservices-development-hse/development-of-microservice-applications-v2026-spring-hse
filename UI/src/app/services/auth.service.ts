@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { ConfigurationService } from './configuration.services';
-import { IAuthSession, ILoginResponse } from '../models/auth.model';
+import { IAuthSession, ILoginResponse, IRegisterResponse } from '../models/auth.model';
 
 @Injectable({
   providedIn: 'root'
@@ -23,6 +23,10 @@ export class AuthService {
     return this.http.post<ILoginResponse>(`${this.authUrl}/login`, { email, password }).pipe(
       tap((response) => this.saveSession(response))
     );
+  }
+
+  register(email: string, password: string): Observable<IRegisterResponse> {
+    return this.http.post<IRegisterResponse>(`${this.authUrl}/register`, { email, password });
   }
 
   logout(): void {
