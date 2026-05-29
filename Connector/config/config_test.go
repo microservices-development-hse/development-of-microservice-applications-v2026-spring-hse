@@ -16,6 +16,7 @@ ProgramSettings:
   minTimeSleep: 100
   maxTimeSleep: 1000
   port: 8080
+  grpcPort: 9090
 DBSettings:
   dbUser: "user"
   dbPassword: "pass"
@@ -43,6 +44,10 @@ DBSettings:
 
 	if cfg.ProgramSettings.JiraURL != "https://test" {
 		t.Errorf("expected jiraUrl=https://test, got %s", cfg.ProgramSettings.JiraURL)
+	}
+
+	if cfg.ProgramSettings.GRPCPort != 9090 {
+		t.Errorf("expected grpcPort=9090, got %d", cfg.ProgramSettings.GRPCPort)
 	}
 
 	if cfg.DBSettings.User != "user" {
@@ -87,6 +92,7 @@ ProgramSettings:
   minTimeSleep: 100
   maxTimeSleep: 1000
   port: 8080
+  grpcPort: 9090
 DBSettings:
   dbUser: "user"
   dbPassword: "pass"
@@ -294,6 +300,7 @@ func validConfig() *Config {
 			MinTimeSleep:      100,
 			MaxTimeSleep:      1000,
 			Port:              8080,
+			GRPCPort:          9090,
 		},
 		DBSettings: DBSettings{
 			User:     "user",
