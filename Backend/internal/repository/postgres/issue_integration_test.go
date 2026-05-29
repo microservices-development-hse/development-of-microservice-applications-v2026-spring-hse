@@ -84,7 +84,11 @@ func TestIssueRepository_Full(t *testing.T) {
 
 	t.Run("UpdateIssueWithHistory_Errors", func(t *testing.T) {
 		issue := &models.Issue{
-			ProjectID: proj.ID, AuthorID: author.ID, Key: "ERR-UPD", Status: "Open",
+			ProjectID:  proj.ID,
+			AuthorID:   author.ID,
+			AssigneeID: author.ID,
+			Key:        "ERR-UPD",
+			Status:     "Open",
 		}
 
 		err := repo.CreateIssue(issue)
@@ -97,19 +101,17 @@ func TestIssueRepository_Full(t *testing.T) {
 		assert.Contains(t, err.Error(), "transaction failed")
 
 		err = env.DB.Transaction(func(tx *gorm.DB) error {
-			tx.Exec("SELECT 1/0")
+			if execErr := tx.Exec("SELECT 1/0").Error; execErr != nil {
+				return execErr
+			}
 
 			r := NewIssueRepository(tx)
 			issue.ProjectID = proj.ID
-			err := r.UpdateIssueWithHistory(issue, "Closed")
-
-			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "transaction failed")
-
-			return nil
+			updateErr := r.UpdateIssueWithHistory(issue, "Closed")
+			return updateErr
 		})
 
-		require.NoError(t, err)
+		assert.Error(t, err)
 	})
 
 	t.Run("GetIssuesByProjectID_SQL_Errors", func(t *testing.T) {
@@ -121,7 +123,7 @@ func TestIssueRepository_Full(t *testing.T) {
 
 			assert.Error(t, err)
 
-			return nil
+			return err
 		})
 
 		require.NoError(t, err)

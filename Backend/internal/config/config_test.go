@@ -27,6 +27,8 @@ ProgramSettings:
   analyticsTimeout: 15
   bindAddress: "0.0.0.0"
   bindPort: 8000
+ExternalServices:
+  connectorURL: "http://localhost:8080"
 `,
 			expectError: false,
 		},
@@ -43,6 +45,8 @@ ProgramSettings:
   analyticsTimeout: 15
   bindAddress: "0.0.0.0"
   bindPort: 8000
+ExternalServices:
+  connectorURL: "http://localhost:8080"
 `,
 			expectError: true,
 		},
@@ -60,6 +64,8 @@ ProgramSettings:
   analyticsTimeout: 15
   bindAddress: "0.0.0.0"
   bindPort: 8000
+ExternalServices:
+  connectorURL: "http://localhost:8080"
 `,
 			expectError: true,
 		},
@@ -77,6 +83,8 @@ ProgramSettings:
   analyticsTimeout: 15
   bindAddress: "wrong-address"
   bindPort: 8000
+ExternalServices:
+  connectorURL: "http://localhost:8080"
 `,
 			expectError: true,
 		},

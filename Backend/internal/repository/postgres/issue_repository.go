@@ -48,12 +48,12 @@ func (r *IssueRepository) GetIssuesByProjectID(projectID int, limit, offset int)
 
 	countQuery := `SELECT count(*) FROM issues WHERE project_id = ?`
 	if err := r.db.Raw(countQuery, projectID).Scan(&totalCount).Error; err != nil {
-		return nil, 0, fmt.Errorf("failed to count issues: %w", err)
+		return nil, 0, fmt.Errorf("repository error: failed to count issues: %w", err)
 	}
 
 	dataQuery := `SELECT * FROM issues WHERE project_id = ? LIMIT ? OFFSET ?`
 	if err := r.db.Raw(dataQuery, projectID, limit, offset).Scan(&issues).Error; err != nil {
-		return nil, 0, fmt.Errorf("failed to fetch issues: %w", err)
+		return nil, 0, fmt.Errorf("repository error: failed to fetch issues: %w", err)
 	}
 
 	return issues, int(totalCount), nil
@@ -70,7 +70,7 @@ func (r *IssueRepository) UpdateIssueWithHistory(issue *models.Issue, fromStatus
 		}
 
 		if err := tx.Save(issue).Error; err != nil {
-			return fmt.Errorf("failed to save issue: %w", err)
+			return fmt.Errorf("repository error: failed to save issue: %w", err)
 		}
 
 		if fromStatus != "" && fromStatus != issue.Status {
@@ -83,14 +83,14 @@ func (r *IssueRepository) UpdateIssueWithHistory(issue *models.Issue, fromStatus
 			}
 
 			if err := tx.Create(&change).Error; err != nil {
-				return fmt.Errorf("failed to create status change record: %w", err)
+				return fmt.Errorf("repository error: failed to create status change record: %w", err)
 			}
 		}
 
 		return nil
 	})
 	if err != nil {
-		return fmt.Errorf("transaction failed: %w", err)
+		return fmt.Errorf("repository error: transaction failed: %w", err)
 	}
 
 	return nil

@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/microservices-development-hse/backend/internal/config"
@@ -21,8 +22,17 @@ func SetupRepoTestEnv(t *testing.T) *RepoTestEnv {
 		t.Fatalf("Failed to load config: %v", err)
 	}
 
+	dbHost := os.Getenv("TEST_DB_HOST")
+	if dbHost == "" {
+		dbHost = os.Getenv("DB_HOST")
+	}
+	// Если переменные окружения не заданы, используем localhost для локального запуска тестов
+	if dbHost == "" {
+		dbHost = "localhost"
+	}
+
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable",
-		cfg.DBSettings.DBHost,
+		dbHost,
 		cfg.DBSettings.DBUser,
 		cfg.DBSettings.DBPassword,
 		cfg.DBSettings.DBName,
