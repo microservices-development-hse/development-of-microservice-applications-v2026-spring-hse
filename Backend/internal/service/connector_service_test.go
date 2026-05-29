@@ -19,11 +19,10 @@ func TestConnectorService(t *testing.T) {
 	t.Run("FetchRemoteProjects - Success", func(t *testing.T) {
 		mockRPCResp := &pb.ProjectList{
 			Projects: []*pb.Project{
-				{Key: "JIRA-1", Title: "Remote Task"}, // ✅ убрали пробелы
+				{Key: "JIRA-1", Title: "Remote Task"},
 			},
 		}
 
-		// ✅ Исправленный сигнатур мока (3 аргумента: ctx, req, opts)
 		mockClient.On("FetchRemoteProjects", mock.Anything, mock.Anything, mock.Anything).
 			Return(mockRPCResp, nil).Once()
 
@@ -38,7 +37,6 @@ func TestConnectorService(t *testing.T) {
 	t.Run("TriggerProjectImport - Success", func(t *testing.T) {
 		projectKey := "HSE-CODE"
 
-		// ✅ Мокаем HTTP-эндпоинт через httptest
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "/import", r.URL.Path)
 			assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
@@ -55,7 +53,6 @@ func TestConnectorService(t *testing.T) {
 	})
 
 	t.Run("TriggerProjectImport - Remote Error", func(t *testing.T) {
-		// ✅ Мокаем ошибку от HTTP-сервера
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			_, _ = w.Write([]byte(`{"error":"import failed"}`))
@@ -67,7 +64,8 @@ func TestConnectorService(t *testing.T) {
 		err := svc.TriggerProjectImport("BAD-KEY")
 
 		assert.Error(t, err)
-		if err != nil { // ✅ Защита от nil pointer
+
+		if err != nil {
 			assert.Contains(t, err.Error(), "kafka service returned: 500")
 		}
 	})
@@ -90,13 +88,13 @@ func TestConnectorService_Errors(t *testing.T) {
 	})
 
 	t.Run("TriggerProjectImport - HTTP error", func(t *testing.T) {
-		// ✅ Мокаем недоступный хост для ошибки сетевого уровня
 		svc := NewConnectorService(mockClient, "http://127.0.0.1:1")
 
 		err := svc.TriggerProjectImport("KEY")
 
 		assert.Error(t, err)
-		if err != nil { // ✅ Защита от nil pointer
+
+		if err != nil {
 			assert.Contains(t, err.Error(), "kafka service unavailable")
 		}
 	})

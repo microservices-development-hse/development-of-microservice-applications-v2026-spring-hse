@@ -108,6 +108,7 @@ func TestIssueRepository_Full(t *testing.T) {
 			r := NewIssueRepository(tx)
 			issue.ProjectID = proj.ID
 			updateErr := r.UpdateIssueWithHistory(issue, "Closed")
+
 			return updateErr
 		})
 
