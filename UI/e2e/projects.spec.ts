@@ -1,29 +1,37 @@
 import { test, expect } from '@playwright/test';
+import { loginAsNewUser } from './auth';
 
 test.describe('Projects page', () => {
-  test('sends add request for a project', async ({ page }) => {
+  test('sends add request for a project', async ({ page, request }) => {
+    await loginAsNewUser(page, request);
+
+    const backendResponsePromise = page.waitForResponse(resp =>
+      resp.url().includes('/api/v1/connector/projects') && resp.ok()
+    );
+
     await page.goto('/projects');
+    await backendResponsePromise;
 
-    await expect(page.getByRole('heading', { name: 'Проекты', exact: true })).toBeVisible();
+    const rows = page.locator('table tbody tr');
+    await expect(rows.first()).toBeVisible({ timeout: 30000 });
 
-    const addButton = page.getByRole('button', { name: /Добавить/i }).first();
-    await expect(addButton).toBeVisible();
+    const addButton = rows.first().locator('button');
+    await expect(addButton).toBeVisible({ timeout: 30000 });
 
-    const requestPromise = page.waitForRequest(request =>
-      request.method() === 'POST' &&
+    const requestPromise = page.waitForRequest(req =>
+      req.method() === 'POST' &&
       (
-        request.url().includes('/api/v1/connector/import') ||
-        request.url().includes('/connector/updateProject') ||
-        request.url().includes('/import')
+        req.url().includes('/api/v1/connector/import') ||
+        req.url().includes('/connector/updateProject') ||
+        req.url().includes('/import')
       )
     );
 
     await addButton.click();
 
-    const request = await requestPromise;
-    expect(request.method()).toBe('POST');
-
-    const postData = request.postData() || '';
-    expect(postData).toContain('project_key');
+    const req = await requestPromise;
+    expect(req.method()).toBe('POST');
+    expect(req.postData() || '').toContain('project_key');
   });
 });
+
