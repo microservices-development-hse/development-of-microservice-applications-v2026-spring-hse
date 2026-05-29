@@ -1,0 +1,49 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-badge">Jira Analyzer</div>
+
+    <h1>{{ mode === 'login' ? 'Вход в систему' : 'Регистрация пользователя' }}</h1>
+    <p class="auth-subtitle">
+      {{ mode === 'login'
+        ? 'Введите почту и пароль для доступа к системе.'
+        : 'Если здесь впервые, зарегистрируйтесь в системе'
+      }}
+    </p>
+
+    <form (ngSubmit)="onSubmit()" #loginForm="ngForm" class="auth-form">
+      <label for="email">Почта</label>
+      <input
+        id="email"
+        type="email"
+        name="email"
+        [(ngModel)]="email"
+        required
+        autocomplete="email"
+        placeholder="admin@local"
+      />
+
+      <label for="password">Пароль</label>
+      <input
+        id="password"
+        type="password"
+        name="password"
+        [(ngModel)]="password"
+        required
+        autocomplete="current-password"
+        placeholder="••••••••"
+      />
+
+      <button type="submit" [disabled]="loading || !loginForm.form.valid" class="primary-btn">
+        {{ loading ? (mode === 'login' ? 'Входим...' : 'Регистрируем...') : (mode === 'login' ? 'Войти' : 'Зарегистрировать') }}
+      </button>
+    </form>
+
+    <button type="button" class="secondary-btn" (click)="toggleMode()">
+      {{ mode === 'login' ? 'Первый вход? Зарегистрироваться' : 'Уже есть аккаунт? Войти' }}
+    </button>
+
+    <div class="banner success" *ngIf="success">{{ success }}</div>
+    <div class="banner error" *ngIf="error">{{ error }}</div>
+  </div>
+</div>
+
