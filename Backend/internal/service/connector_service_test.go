@@ -2,6 +2,8 @@ package service
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	pb "github.com/microservices-development-hse/backend/internal/generated/connector"
@@ -29,16 +31,21 @@ func TestConnectorService(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Len(t, projects, 1)
 		assert.Equal(t, "JIRA-1", projects[0].Key)
+		mockClient.AssertExpectations(t)
 	})
 
 	t.Run("TriggerProjectImport - Success", func(t *testing.T) {
 		projectKey := "HSE-CODE"
 
-		mockResp := &pb.ImportResponse{Success: true}
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "/import", r.URL.Path)
+			assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{"status":"ok"}`))
+		}))
+		defer server.Close()
 
-		mockClient.On("TriggerProjectImport", mock.Anything, &pb.ImportRequest{
-			ProjectKey: projectKey,
-		}, mock.Anything).Return(mockResp, nil).Once()
+		svc := NewConnectorService(mockClient, server.URL)
 
 		err := svc.TriggerProjectImport(projectKey)
 
@@ -46,14 +53,21 @@ func TestConnectorService(t *testing.T) {
 	})
 
 	t.Run("TriggerProjectImport - Remote Error", func(t *testing.T) {
-		mockResp := &pb.ImportResponse{Success: false}
-		mockClient.On("TriggerProjectImport", mock.Anything, mock.Anything, mock.Anything).
-			Return(mockResp, nil).Once()
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = w.Write([]byte(`{"error":"import failed"}`))
+		}))
+		defer server.Close()
+
+		svc := NewConnectorService(mockClient, server.URL)
 
 		err := svc.TriggerProjectImport("BAD-KEY")
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "connector failed to start import")
+
+		if err != nil {
+			assert.Contains(t, err.Error(), "kafka service returned: 500")
+		}
 	})
 }
 
@@ -70,15 +84,18 @@ func TestConnectorService_Errors(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, projects)
 		assert.Contains(t, err.Error(), "connection refused")
+		mockClient.AssertExpectations(t)
 	})
 
-	t.Run("TriggerProjectImport - gRPC error", func(t *testing.T) {
-		mockClient.On("TriggerProjectImport", mock.Anything, mock.Anything, mock.Anything).
-			Return((*pb.ImportResponse)(nil), fmt.Errorf("timeout")).Once()
+	t.Run("TriggerProjectImport - HTTP error", func(t *testing.T) {
+		svc := NewConnectorService(mockClient, "http://127.0.0.1:1")
 
 		err := svc.TriggerProjectImport("KEY")
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "timeout")
+
+		if err != nil {
+			assert.Contains(t, err.Error(), "kafka service unavailable")
+		}
 	})
 }
