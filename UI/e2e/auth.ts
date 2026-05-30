@@ -4,7 +4,13 @@ import { randomUUID } from 'crypto';
 const AUTH_URL = 'http://localhost:8083';
 const PASSWORD = 'admin';
 
-export async function loginAsNewUser(page: Page, request: APIRequestContext): Promise<void> {
+export type AuthSession = {
+  token: string;
+  email: string;
+  expiresAt: number;
+};
+
+export async function loginAsNewUser(page: Page, request: APIRequestContext): Promise<AuthSession> {
   const email = `e2e-${randomUUID()}@local`;
 
   const registerResponse = await request.post(`${AUTH_URL}/register`, {
@@ -19,9 +25,9 @@ export async function loginAsNewUser(page: Page, request: APIRequestContext): Pr
 
   expect(loginResponse.ok()).toBeTruthy();
 
-  const session = await loginResponse.json();
+  const session = await loginResponse.json() as AuthSession;
 
-  const normalizedSession = {
+  const normalizedSession: AuthSession = {
     ...session,
     expiresAt:
       typeof session.expiresAt === 'number' && session.expiresAt < 1_000_000_000_000
@@ -32,5 +38,7 @@ export async function loginAsNewUser(page: Page, request: APIRequestContext): Pr
   await page.addInitScript((value) => {
     localStorage.setItem('jira-analyzer-session', JSON.stringify(value));
   }, normalizedSession);
+
+  return normalizedSession;
 }
 

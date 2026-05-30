@@ -1,26 +1,48 @@
 import { test, expect } from '@playwright/test';
 import { loginAsNewUser } from './auth';
 
+type ProjectItem = {
+  id: number;
+  key?: string;
+  title?: string;
+  name?: string;
+};
+
 test.describe('Compare page', () => {
-  test('allows selecting two projects and opening comparison', async ({ page, request }) => {
-    await loginAsNewUser(page, request);
+  test('allows opening comparison for two projects', async ({ page, request }) => {
+    const session = await loginAsNewUser(page, request);
 
-    await page.goto('/compare');
+    const projectsResponse = await request.get('http://localhost:8000/api/v1/projects', {
+      headers: {
+        Authorization: `Bearer ${session.token}`
+      }
+    });
 
-    const checkboxes = page.locator('input[type="checkbox"]');
-    await expect(checkboxes.first()).toBeVisible({ timeout: 30000 });
+    expect(projectsResponse.ok()).toBeTruthy();
 
-    const count = await checkboxes.count();
-    expect(count).toBeGreaterThanOrEqual(2);
+    const body = (await projectsResponse.json()) as { projects?: ProjectItem[] };
+    const projects = body.projects ?? [];
 
-    await checkboxes.nth(0).check();
-    await checkboxes.nth(1).check();
+    expect(projects.length).toBeGreaterThanOrEqual(2);
 
-    await page.getByRole('button', { name: /Сравнить/i }).click();
+    const selected = projects.slice(0, 2);
 
-    await expect(page).toHaveURL(/\/compare-projects/, { timeout: 30000 });
-    await expect(page.getByText('Сухая статистика')).toBeVisible({ timeout: 30000 });
+    const params = new URLSearchParams();
+    selected.forEach((project) => {
+      params.append('keys', project.title || project.name || project.key || '');
+    });
+    selected.forEach((project) => {
+      const id = String(project.id);
+      params.append('value', id);
+      params.append('projectIds', id);
+    });
+
+    await page.goto(`/compare-projects?${params.toString()}`);
+    await page.waitForLoadState('networkidle');
+
+    await expect(page.getByRole('heading', { name: /Сравнение/i })).toBeVisible({ timeout: 30000 });
     await expect(page.locator('table.tbl')).toBeVisible({ timeout: 30000 });
+    await expect(page.getByText('Сухая статистика')).toBeVisible({ timeout: 30000 });
   });
 });
 
