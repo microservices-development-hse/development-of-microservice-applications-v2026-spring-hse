@@ -5,13 +5,13 @@
     <h1>{{ mode === 'login' ? 'Вход в систему' : 'Регистрация пользователя' }}</h1>
     <p class="auth-subtitle">
       {{ mode === 'login'
-        ? 'Введите почту и пароль для доступа к системе.'
+        ? 'Введите логин и пароль для доступа к системе'
         : 'Если здесь впервые, зарегистрируйтесь в системе'
       }}
     </p>
 
     <form (ngSubmit)="onSubmit()" #loginForm="ngForm" class="auth-form">
-      <label for="email">Почта</label>
+      <label for="email">Логин</label>
       <input
         id="email"
         type="email"
@@ -19,7 +19,7 @@
         [(ngModel)]="email"
         required
         autocomplete="email"
-        placeholder="admin@local"
+        placeholder="admin"
       />
 
       <label for="password">Пароль</label>
